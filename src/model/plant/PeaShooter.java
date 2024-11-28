@@ -1,12 +1,19 @@
-package model;
+package model.plant;
 
-public class PeaShooterModel extends PlantModel {
+import model.GameModel;
+
+public class PeaShooter extends Plant {
 
     private long lastShootTime;
 
-    public PeaShooterModel() {
+    public PeaShooter() {
         super(300);
         lastShootTime =System.currentTimeMillis();
+    }
+
+    @Override
+    public void update(GameModel gameModel) {
+
     }
 
     public long getLastShootTime() {

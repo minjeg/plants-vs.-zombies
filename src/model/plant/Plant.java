@@ -1,15 +1,22 @@
-package model;
+package model.plant;
 
-public abstract class PlantModel {
+import model.GameModel;
+
+public abstract class Plant {
+    private String name;
     private int health;
     private int state;
+    private int damage;
+    private int performGap;
 
     static int NORMAL =0, DEAD =1;
 
-    public PlantModel(int health) {
+    public Plant(int health) {
         this.health = health;
         this.state= NORMAL;
     }
+
+    public abstract void update(GameModel gameModel);
 
     public int getHealth() {
         return health;
