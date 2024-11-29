@@ -3,32 +3,37 @@ package model.plant;
 import model.GameModel;
 
 public abstract class Plant {
-    private String name;
     private int health;
-    private int state;
-    private int damage;
-    private int performGap;
+    private final int performGap;
 
-    static int NORMAL =0, DEAD =1;
-
-    public Plant(int health) {
+    public Plant(int health, int performGap) {
         this.health = health;
-        this.state= NORMAL;
+        this.performGap = performGap;
     }
 
-    public abstract void update(GameModel gameModel);
+    public abstract void update(GameModel gameModel, int row, int col);
 
     public int getHealth() {
         return health;
     }
 
-    public void setHealth(int health) {
-        this.health = health;
-        if(health<=0)
-            state= DEAD;
+    public boolean isAlive() {
+        return health > 0;
     }
 
-    public int getState() {
-        return state;
+    public void takeDamage(int damage) {
+        health -= damage;
+    }
+
+    public int getPerformGap() {
+        return performGap;
+    }
+
+    @Override
+    public String toString() {
+        return "Plant{" +
+                "health=" + health +
+                ", performGap=" + performGap +
+                '}';
     }
 }

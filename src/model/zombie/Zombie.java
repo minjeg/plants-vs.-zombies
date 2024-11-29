@@ -4,36 +4,45 @@ import model.GameModel;
 
 public abstract class Zombie {
     private int health;
-    private int y;
+    private double x;
     private int speed;
 
-    public Zombie(int health){
-        this.health=health;
+    public Zombie(int health, int x, int speed) {
+        this.health = health;
+        this.x = x;
+        this.speed = speed;
     }
 
-    public abstract void update(GameModel gameModel);
+    public void update(GameModel gameModel) {
+        x -= 1.0 * gameModel.getUpdateGap() * gameModel.getWidth() / speed;
+    }
 
     public int getHealth() {
         return health;
     }
 
-    public void setHealth(int health) {
-        this.health = health;
+    public boolean isAlive() {
+        return health > 0;
     }
 
-    public int getY() {
-        return y;
+    public void takeDamage(int damage) {
+        health -= damage;
     }
 
-    public void setY(int y) {
-        this.y = y;
+    public int getX() {
+        return (int) x;
     }
 
     public int getSpeed() {
         return speed;
     }
 
-    public void setSpeed(int speed) {
-        this.speed = speed;
+    @Override
+    public String toString() {
+        return "Zombie{" +
+                "health=" + health +
+                ", x=" + x +
+                ", speed=" + speed +
+                '}';
     }
 }

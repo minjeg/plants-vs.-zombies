@@ -3,18 +3,34 @@ package model.bullet;
 import model.GameModel;
 
 public class Bullet {
-    private int x;
+    private double x;
     private final int speed;
+    private int damage;
 
-    public Bullet(int speed){
-        this.speed=speed;
+    public Bullet(int x, int speed, int damage) {
+        this.x = x;
+        this.speed = speed;
+        this.damage = damage;
     }
 
-    public void update(GameModel gameModel){
-        x -=speed*gameModel.getWidth()/gameModel.getCols()/10;
+    public void update(GameModel gameModel) {
+        x += 1.0 * gameModel.getUpdateGap() * gameModel.getWidth() / speed;
     }
 
-    public int getSpeed() {
-        return speed;
+    public int getX() {
+        return (int) x;
+    }
+
+    public int getDamage() {
+        return damage;
+    }
+
+    @Override
+    public String toString() {
+        return "Bullet{" +
+                "x=" + x +
+                ", speed=" + speed +
+                ", damage=" + damage +
+                '}';
     }
 }
