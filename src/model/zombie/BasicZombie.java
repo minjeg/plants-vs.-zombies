@@ -4,6 +4,6 @@ import model.GameModel;
 
 public class BasicZombie extends Zombie {
     public BasicZombie(GameModel gameModel) {
-        super(270, gameModel.getWidth(), 50000);
+        super(270, gameModel.getWidth(), 50000,100);
     }
 }

@@ -60,7 +60,42 @@ public class GameModel {
     }
 
     private void check() {
-
+        for (int i = 0; i < rows; ++i) {
+            List<Zombie> rowZombies = zombies.get(i);
+            List<Bullet> rowBullets = bullets.get(i);
+            List<Plant> rowPlants = plants.get(i);
+            for (int j = 0; j < rowZombies.size(); ++j) {
+                Zombie zombie = rowZombies.get(j);
+                for (int k = 0; k < rowBullets.size(); ++k) {
+                    Bullet bullet = rowBullets.get(k);
+                    if (zombie.getX() - bullet.getX() < 10) {
+                        zombie.takeDamage(bullet.getDamage());
+                        rowBullets.remove(k);
+                        --k;
+                        if (!zombie.isAlive()) {
+                            rowZombies.remove(j);
+                            --j;
+                        }
+                    }
+                }
+                if (zombie.isAlive()) {
+                    int col = zombie.getClosestColumn(this);
+                    Plant plant = rowPlants.get(col);
+                    if (zombie.getState() == Zombie.State.ADVANCING && plant != null
+                            && zombie.getX()-(col+1)*width/cols<10) {
+                        zombie.setState(Zombie.State.ATTACKING);
+                    }
+                    if (zombie.getState() == Zombie.State.ATTACKING) {
+                        assert plant != null;
+                        plant.takeDamage(updateGap * zombie.getDamage() / 1000);
+                        if (!plant.isAlive()) {
+                            zombie.setState(Zombie.State.ADVANCING);
+                            rowPlants.set(col, null);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public int getState() {
