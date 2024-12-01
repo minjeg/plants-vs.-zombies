@@ -1,9 +1,9 @@
 package model;
 
 import model.bullet.Bullet;
-import model.plant.PeaShooter;
+import model.plant.Peashooter;
 import model.plant.Plant;
-import model.zombie.CommonZombie;
+import model.zombie.BasicZombie;
 import model.zombie.Zombie;
 
 import javax.swing.*;
@@ -13,92 +13,89 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class TestComponent extends JComponent {
-    GameModel gameModel=new GameModel(5,9,800,600);
+    private final int updateGap = 20;
+    private final GameModel gameModel = new GameModel(5, 9, 800, 600,
+            updateGap, 1000);
 
-    public TestComponent(){
-        gameModel.setPlant(0,0,new PeaShooter());
-        gameModel.addZombie(0,new CommonZombie(gameModel));
-        Timer timer=new Timer();
+    public TestComponent() {
+        for (int row = 0; row < gameModel.getRows(); ++row) {
+            gameModel.setPlant(row, 4, new Peashooter());
+        }
+
+        Timer timer = new Timer();
+
+        timer.schedule(new TimerTask() {
+            private int row = 0;
+
+            @Override
+            public void run() {
+                gameModel.addZombie(row, new BasicZombie(gameModel));
+                row = (row + 1) % gameModel.getRows();
+            }
+        }, 0, 2000);
+
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                repaint();
+                if (gameModel.getState() == GameModel.State.RUNNING)
+                    repaint();
+                else if (gameModel.getState() == GameModel.State.WIN) {
+                    showMessageDialog("You win!");
+                    this.cancel();
+                } else if (gameModel.getState() == GameModel.State.LOSE) {
+                    showMessageDialog("You lose!");
+                    this.cancel();
+                }
             }
-        },0,20);
+        }, 0, updateGap);
+    }
+
+    private void showMessageDialog(Object message) {
+        JOptionPane.showMessageDialog(this, message);
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        int blockWidth=gameModel.getWidth()/ gameModel.getCols();
-        int blockHeight=gameModel.getHeight()/ gameModel.getRows();
+        int blockWidth = gameModel.getBlockWidth();
+        int blockHeight = gameModel.getBlockHeight();
+
         g.setColor(Color.RED);
-        for(int row = 1; row <gameModel.getRows(); ++row){
-            g.drawLine(0,row*blockHeight,gameModel.getWidth(),row*blockHeight);
+        for (int row = 1; row < gameModel.getRows(); ++row) {
+            g.drawLine(0, row * blockHeight, gameModel.getWidth(), row * blockHeight);
         }
-        for(int col = 1; col <gameModel.getCols(); ++col){
-            g.drawLine(col*blockWidth,0,col*blockWidth,gameModel.getHeight());
+        for (int col = 1; col < gameModel.getCols(); ++col) {
+            g.drawLine(col * blockWidth, 0, col * blockWidth, gameModel.getHeight());
         }
 
-        for(int row = 0; row < gameModel.getRows(); row++) {
-            for(int col = 0; col < gameModel.getCols(); col++) {
+        for (int row = 0; row < gameModel.getRows(); row++) {
+            for (int col = 0; col < gameModel.getCols(); col++) {
                 Plant plant = gameModel.getPlant(row, col);
-                if(plant == null)
+                if (plant == null)
                     continue;
-                g.drawImage(new ImageIcon("images/Peashooter/shooting.gif").getImage(),
-                        row, col, null);
+                Image image = new ImageIcon(plant.getCurrentImagePath()).getImage();
+                g.drawImage(image, (int) ((col + 0.5) * blockWidth - image.getWidth(null) / 2.0),
+                        (int) ((row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
             }
         }
 
-        for(int row = 0; row < gameModel.getRows(); row++) {
+        for (int row = 0; row < gameModel.getRows(); row++) {
             List<Zombie> zombies = gameModel.getZombies(row);
-            for(Zombie zombie : zombies) {
-                g.drawImage(new ImageIcon("images/Zombie/walk.gif").getImage(),
-                        zombie.getX(), row, null);
+            for (Zombie zombie : zombies) {
+                Image image = new ImageIcon(zombie.getCurrentImagePath()).getImage();
+                g.drawImage(image, (int) (zombie.getX() - image.getWidth(null) / 2.0),
+                        (int) ((row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
             }
         }
 
-        for(int row = 0; row < gameModel.getRows(); row++) {
+        for (int row = 0; row < gameModel.getRows(); row++) {
             List<Bullet> bullets = gameModel.getBullets(row);
-            for(Bullet bullet : bullets) {
-                g.drawImage(new ImageIcon("images/Bullet/pea.gif").getImage(),
-                        bullet.getX(), row, null);
+            for (Bullet bullet : bullets) {
+                Image image = new ImageIcon(bullet.getCurrentImagePath()).getImage();
+                g.drawImage(image, (int) (bullet.getX() - image.getWidth(null) / 2.0),
+                        (int) ((row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
             }
         }
-//        g.setColor(Color.GREEN);
-//        for(int row = 0; row <gameModel.getRows(); ++row){
-//            for(int col = 0; col <gameModel.getCols(); ++col){
-//                if(gameModel.getPlant(row,col)==null)
-//                    continue;
-//                g.fillRect(col*blockWidth,
-//                        row*blockHeight,
-//                        blockWidth,
-//                        blockHeight
-//                );
-//            }
-//        }
-//        g.setColor(Color.BLACK);
-//        for(int row=0;row< gameModel.getRows();++row){
-//            List<Zombie>rowZombies=gameModel.getZombies(row);
-//            for(Zombie zombie:rowZombies){
-//                g.fillRect(zombie.getX()-blockWidth/2,
-//                        row*blockHeight,
-//                        blockWidth,
-//                        blockHeight
-//                );
-//            }
-//        }
-//        g.setColor(Color.YELLOW);
-//        for(int row=0;row<gameModel.getRows();++row){
-//            List<Bullet>rowBullet=gameModel.getBullets(row);
-//            for(Bullet bullet:rowBullet){
-//                g.fillOval(bullet.getX()-blockWidth/4,
-//                        (int) ((row+0.25)*blockHeight),
-//                        blockWidth/2,
-//                        blockHeight/2
-//                );
-//            }
-//        }
     }
 }

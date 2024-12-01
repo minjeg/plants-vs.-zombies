@@ -5,13 +5,14 @@ import model.GameModel;
 public abstract class Zombie {
     private int health;
     private double x;
-    private int speed;
-    private int damage;
-    private State state = State.ADVANCING;
+    private final int speed;
+    private final int damage;
+    private State state = State.WALKING;
+    private String currentImagePath;
 
-    public enum State {ADVANCING, ATTACKING}
+    public enum State {WALKING, EATING}
 
-    public Zombie(int health, int x, int speed, int damage) {
+    protected Zombie(int health, int x, int speed, int damage) {
         this.health = health;
         this.x = x;
         this.speed = speed;
@@ -19,12 +20,8 @@ public abstract class Zombie {
     }
 
     public void update(GameModel gameModel) {
-        if (state == State.ADVANCING)
+        if (state == State.WALKING)
             x -= 1.0 * gameModel.getUpdateGap() * gameModel.getWidth() / speed;
-    }
-
-    public int getHealth() {
-        return health;
     }
 
     public boolean isAlive() {
@@ -35,17 +32,12 @@ public abstract class Zombie {
         health -= damage;
     }
 
-
     public int getDamage() {
         return damage;
     }
 
     public int getX() {
         return (int) x;
-    }
-
-    public int getSpeed() {
-        return speed;
     }
 
     public State getState() {
@@ -57,15 +49,14 @@ public abstract class Zombie {
     }
 
     public int getClosestColumn(GameModel gameModel) {
-        return (int) (x * gameModel.getCols() / gameModel.getWidth());
+        return (int) (x / (gameModel.getBlockWidth() + 1));
     }
 
-    @Override
-    public String toString() {
-        return "Zombie{" +
-                "health=" + health +
-                ", x=" + x +
-                ", speed=" + speed +
-                '}';
+    public String getCurrentImagePath() {
+        return currentImagePath;
+    }
+
+    protected void setCurrentImagePath(String currentImagePath) {
+        this.currentImagePath = currentImagePath;
     }
 }

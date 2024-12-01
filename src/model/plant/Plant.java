@@ -5,17 +5,19 @@ import model.GameModel;
 public abstract class Plant {
     private int health;
     private final int performGap;
+    private final int cost;
+    private State state = State.IDLE;
+    private String currentImagePath;
 
-    public Plant(int health, int performGap) {
+    public enum State {IDLE, SHOOTING}
+
+    public Plant(int health, int cost, int performGap) {
         this.health = health;
+        this.cost = cost;
         this.performGap = performGap;
     }
 
     public abstract void update(GameModel gameModel, int row, int col);
-
-    public int getHealth() {
-        return health;
-    }
 
     public boolean isAlive() {
         return health > 0;
@@ -25,15 +27,27 @@ public abstract class Plant {
         health -= damage;
     }
 
-    public int getPerformGap() {
+    protected int getPerformGap() {
         return performGap;
     }
 
-    @Override
-    public String toString() {
-        return "Plant{" +
-                "health=" + health +
-                ", performGap=" + performGap +
-                '}';
+    public int getCost() {
+        return cost;
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
+    }
+
+    public String getCurrentImagePath() {
+        return currentImagePath;
+    }
+
+    protected void setCurrentImagePath(String currentImagePath) {
+        this.currentImagePath = currentImagePath;
     }
 }

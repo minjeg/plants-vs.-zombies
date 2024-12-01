@@ -12,19 +12,24 @@ public class GameModel {
     private final List<List<Bullet>> bullets = new ArrayList<>();
     private final List<Boolean> lawnMowers = new ArrayList<>();
 
-    private int sun = 50;
+    private int sun;
     private final int rows, cols;
     private int width, height;
-    private final int updateGap = 20;
-    private int state = RUNNING;
+    private int blockWidth, blockHeight;
+    private int updateGap;
+    private State state = State.RUNNING;
 
-    public static int PAUSED = 0, RUNNING = 1;
+    public enum State {PAUSED, RUNNING, WIN, LOSE}
 
-    public GameModel(int rows, int cols, int width, int height) {
+    public GameModel(int rows, int cols, int width, int height, int updateGap, int sun) {
         this.rows = rows;
         this.cols = cols;
         this.width = width;
         this.height = height;
+        this.updateGap = updateGap;
+        this.sun = sun;
+        this.blockWidth = width / cols;
+        this.blockHeight = height / rows;
 
         for (int i = 0; i < rows; ++i) {
             zombies.add(new ArrayList<>());
@@ -38,27 +43,61 @@ public class GameModel {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if (state == RUNNING)
+                if (state == State.RUNNING)
                     update();
             }
-        }, 0, 20);
+        }, 0, updateGap);
     }
 
+    /// 更新植物、僵尸和子弹的数据
     private void update() {
-        for (int row = 0; row < rows; ++row) {
-            for (int col = 0; col < cols; ++col) {
-                Plant plant = plants.get(row).get(col);
-                if (plant != null)
-                    plant.update(this, row, col);
+        //植物更新
+        Thread plantThread = new Thread(() -> {
+            for (int row = 0; row < rows; ++row) {
+                for (int col = 0; col < cols; ++col) {
+                    Plant plant = plants.get(row).get(col);
+                    if (plant != null)
+                        plant.update(this, row, col);
+                }
             }
-            for (Zombie zombie : zombies.get(row))
-                zombie.update(this);
-            for (Bullet bullet : bullets.get(row))
-                bullet.update(this);
+        });
+        plantThread.start();
+        //僵尸更新
+        Thread zombieThread = new Thread(() -> {
+            for (int row = 0; row < rows; ++row) {
+                List<Zombie> rowZombies = zombies.get(row);
+                for (Zombie zombie : rowZombies)
+                    zombie.update(this);
+            }
+        });
+        zombieThread.start();
+        //子弹更新
+        Thread bulletThread = new Thread(() -> {
+            for (int row = 0; row < rows; ++row) {
+                List<Bullet> rowBullets = bullets.get(row);
+                for (int i = 0; i < rowBullets.size(); ++i) {
+                    Bullet bullet = rowBullets.get(i);
+                    bullet.update(this);
+                    if (bullet.getX() > width) {
+                        rowBullets.remove(i);
+                        --i;
+                    }
+                }
+            }
+        });
+        bulletThread.start();
+        try {
+            plantThread.join();
+            zombieThread.join();
+            bulletThread.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
+
         check();
     }
 
+    /// 检查子弹击中僵尸、僵尸攻击植物、更新状态
     private void check() {
         for (int i = 0; i < rows; ++i) {
             List<Zombie> rowZombies = zombies.get(i);
@@ -68,7 +107,7 @@ public class GameModel {
                 Zombie zombie = rowZombies.get(j);
                 for (int k = 0; k < rowBullets.size(); ++k) {
                     Bullet bullet = rowBullets.get(k);
-                    if (zombie.getX() - bullet.getX() < 10) {
+                    if (Math.abs(zombie.getX() - bullet.getX()) < 10) {
                         zombie.takeDamage(bullet.getDamage());
                         rowBullets.remove(k);
                         --k;
@@ -80,16 +119,19 @@ public class GameModel {
                 }
                 if (zombie.isAlive()) {
                     int col = zombie.getClosestColumn(this);
-                    Plant plant = rowPlants.get(col);
-                    if (zombie.getState() == Zombie.State.ADVANCING && plant != null
-                            && zombie.getX()-(col+1)*width/cols<10) {
-                        zombie.setState(Zombie.State.ATTACKING);
+                    if (col < 0) {
+                        state = State.LOSE;
+                        return;
                     }
-                    if (zombie.getState() == Zombie.State.ATTACKING) {
+                    Plant plant = rowPlants.get(col);
+                    if (zombie.getState() == Zombie.State.WALKING && plant != null
+                            && Math.abs(zombie.getX() - (col + 0.5) * blockWidth) < 10) {
+                        zombie.setState(Zombie.State.EATING);
+                    } else if (zombie.getState() == Zombie.State.EATING) {
                         assert plant != null;
                         plant.takeDamage(updateGap * zombie.getDamage() / 1000);
                         if (!plant.isAlive()) {
-                            zombie.setState(Zombie.State.ADVANCING);
+                            zombie.setState(Zombie.State.WALKING);
                             rowPlants.set(col, null);
                         }
                     }
@@ -98,16 +140,16 @@ public class GameModel {
         }
     }
 
-    public int getState() {
+    public State getState() {
         return state;
     }
 
     public void pauseGame() {
-        state = PAUSED;
+        state = State.PAUSED;
     }
 
     public void continueGame() {
-        state = RUNNING;
+        state = State.RUNNING;
     }
 
     public Plant getPlant(int row, int col) {
@@ -116,6 +158,7 @@ public class GameModel {
 
     public void setPlant(int row, int col, Plant plant) {
         plants.get(row).set(col, plant);
+        sun -= plant.getCost();
     }
 
     public List<Zombie> getZombies(int row) {
@@ -170,16 +213,15 @@ public class GameModel {
         return cols;
     }
 
-    public int getUpdateGap() {
-        return updateGap;
+    public int getBlockWidth() {
+        return blockWidth;
     }
 
-    public void display() {
-        System.out.println("Plants");
-        for (List<Plant> rowPlant : plants)
-            System.out.println(rowPlant);
-        System.out.println("Zombies\n" + zombies);
-        System.out.println("Bullets\n" + bullets);
-        System.out.println();
+    public int getBlockHeight() {
+        return blockHeight;
+    }
+
+    public int getUpdateGap() {
+        return updateGap;
     }
 }

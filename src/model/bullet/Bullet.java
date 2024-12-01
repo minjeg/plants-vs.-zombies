@@ -2,10 +2,11 @@ package model.bullet;
 
 import model.GameModel;
 
-public class Bullet {
+public abstract class Bullet {
     private double x;
     private final int speed;
-    private int damage;
+    private final int damage;
+    private String currentImagePath;
 
     public Bullet(int x, int speed, int damage) {
         this.x = x;
@@ -25,12 +26,11 @@ public class Bullet {
         return damage;
     }
 
-    @Override
-    public String toString() {
-        return "Bullet{" +
-                "x=" + x +
-                ", speed=" + speed +
-                ", damage=" + damage +
-                '}';
+    public String getCurrentImagePath() {
+        return currentImagePath;
+    }
+
+    protected void setCurrentImagePath(String imagePath) {
+        this.currentImagePath = imagePath;
     }
 }

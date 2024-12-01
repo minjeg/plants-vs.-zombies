@@ -1,16 +1,11 @@
 package model;
 
-import model.plant.*;
-import model.zombie.*;
-
 import javax.swing.*;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class TestModel {
-    public static void main(String[] args){
-        JFrame jFrame=new JFrame();
-        jFrame.setSize(800,600);
+    public static void main(String[] args) {
+        JFrame jFrame = new JFrame();
+        jFrame.setSize(840, 630);
         jFrame.setLocationRelativeTo(null);
 
         jFrame.add(new TestComponent());
