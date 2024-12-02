@@ -6,26 +6,38 @@ import model.plant.Peashooter;
 import model.plant.Plant;
 import model.zombie.BasicZombie;
 import model.zombie.Zombie;
-import seed.PeashooterSeed;
-import seed.PlantSeed;
+import model.seed.PeashooterSeed;
+import model.seed.PlantSeed;
+import model.seed.SunflowerSeed;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainPanel extends JPanel {
+public class MainPanel extends JPanel implements MouseListener, MouseMotionListener {
     private final Image background =
             new ImageIcon("images/Background.jpg").getImage();
     private GameModel gameModel = new GameModel(5, 9, 720, 500,
-            20, 500);
+            20, 50);
     private static Font STANDARD = new Font("Standard", Font.PLAIN, 15);
+
+    private boolean isShovel = false;
+    private PlantSeed seedInHand = null;
+
 
     public MainPanel() {
         super();
         this.setBounds(0, 0, 835, 635);
+        this.addMouseListener(this);
+        this.addMouseMotionListener(this);
+
         gameModel.addSeed(new PeashooterSeed());
+        gameModel.addSeed(new SunflowerSeed());
 
         for (int row = 0; row < gameModel.getRows(); ++row) {
             gameModel.setPlant(row, 4, new Peashooter());
@@ -75,11 +87,26 @@ public class MainPanel extends JPanel {
         g.drawString(numOfSun,
                 44 - numOfSun.length() * g.getFont().getSize() / 4, 89);
         List<PlantSeed> seeds = gameModel.getSeeds();
-        for(int i = 0; i < seeds.size(); i++)
-            g.drawImage(new ImageIcon(seeds.get(i).getImagePath())
-                            .getImage()
-                            .getScaledInstance(68, 48, Image.SCALE_DEFAULT),
-                    85 + i * 50, 15, null);
+        for(int i = 0; i < seeds.size(); i++) {
+            PlantSeed seed = seeds.get(i);
+            g.drawImage(new ImageIcon(seed.getImagePath()).getImage(),
+                    85 + i * 53, 15, null);
+            if(!seed.goodToPlant(gameModel)) {
+                Graphics2D g2d = (Graphics2D)g;
+                g2d.setComposite(AlphaComposite
+                        .getInstance(AlphaComposite.SRC_OVER, 0.5f));
+                g2d.setColor(Color.GRAY);
+                g2d.fillRect(85 + i * 53, 15, 53, 75);
+                if(seed.getCoolDown() != 0) {
+                    g2d.setColor(Color.BLACK);
+                    g2d.fillRect(85 + i * 53, 15,
+                            53, (int)(75 * seed.getCoolDown()));
+                }
+                g2d.setComposite(AlphaComposite
+                        .getInstance(AlphaComposite.SRC_OVER, 1.0f));
+                g2d.setColor(null);
+            }
+        }
 
         int blockWidth = gameModel.getBlockWidth();
         int blockHeight = gameModel.getBlockHeight();
@@ -116,5 +143,41 @@ public class MainPanel extends JPanel {
                         (int) ((row + 1) * blockHeight - image.getHeight(null) / 2.0), null);
             }
         }
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        List<PlantSeed> seeds = gameModel.getSeeds();
+
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+
     }
 }

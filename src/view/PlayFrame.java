@@ -14,6 +14,7 @@ public class PlayFrame extends JFrame {
         this.setIconImage(new ImageIcon("images/Icon.png").getImage());
 
         this.setLayout(null);
+        this.setResizable(true);
 
         this.add(new BankPanel());
         this.add(new LawnPanel());

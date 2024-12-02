@@ -3,7 +3,7 @@ package model;
 import model.bullet.Bullet;
 import model.plant.Plant;
 import model.zombie.Zombie;
-import seed.PlantSeed;
+import model.seed.PlantSeed;
 
 import java.awt.*;
 import java.util.*;

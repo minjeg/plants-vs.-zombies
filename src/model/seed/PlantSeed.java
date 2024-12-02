@@ -1,9 +1,7 @@
-package seed;
+package model.seed;
 
 import model.GameModel;
 import model.plant.Plant;
-
-import java.awt.*;
 
 public abstract class PlantSeed {
     private int coolDown;
@@ -19,7 +17,7 @@ public abstract class PlantSeed {
         this.imagePath = imagePath;
     }
 
-    boolean goodToPlant(GameModel model) {
+    public boolean goodToPlant(GameModel model) {
         return currentCoolDown == 0 && model.getSun() >= cost;
     }
 
