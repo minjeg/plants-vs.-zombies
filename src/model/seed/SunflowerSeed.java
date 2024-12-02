@@ -1,7 +1,7 @@
 package model.seed;
 
-import model.plant.Peashooter;
 import model.plant.Plant;
+import model.plant.Sunflower;
 
 public class SunflowerSeed extends PlantSeed {
     public SunflowerSeed() {
@@ -10,6 +10,6 @@ public class SunflowerSeed extends PlantSeed {
 
     @Override
     public Plant getPlant() {
-        return new Peashooter();
+        return new Sunflower();
     }
 }

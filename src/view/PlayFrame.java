@@ -4,7 +4,6 @@ import javax.swing.*;
 
 public class PlayFrame extends JFrame {
 
-
     public PlayFrame() {
         this.setVisible(true);
         this.setTitle("Plants vs. Zombies");

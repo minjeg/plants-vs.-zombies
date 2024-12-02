@@ -7,7 +7,7 @@ public class Peashooter extends Plant {
     private int timer;
 
     public Peashooter() {
-        super(300, /*100, */1500);
+        super(300, 1500);
         setState(State.IDLE);
         timer = getPerformGap();
     }

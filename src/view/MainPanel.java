@@ -1,9 +1,11 @@
 package view;
 
 import model.GameModel;
+import model.Sun;
 import model.bullet.Bullet;
 import model.plant.Peashooter;
 import model.plant.Plant;
+import model.plant.Sunflower;
 import model.zombie.BasicZombie;
 import model.zombie.Zombie;
 import model.seed.PeashooterSeed;
@@ -22,8 +24,10 @@ import java.util.TimerTask;
 public class MainPanel extends JPanel implements MouseListener, MouseMotionListener {
     private final Image background =
             new ImageIcon("images/Background.jpg").getImage();
-    private GameModel gameModel = new GameModel(5, 9, 720, 500,
-            20, 50);
+    private final GameModel gameModel = new GameModel(5, 9, 720, 500,
+            30, 50);
+    private int deltaX = 60, deltaY = 60;
+
     private static Font STANDARD = new Font("Standard", Font.PLAIN, 15);
 
     private boolean isShovel = false;
@@ -40,6 +44,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         gameModel.addSeed(new SunflowerSeed());
 
         for (int row = 0; row < gameModel.getRows(); ++row) {
+            gameModel.setPlant(row, 0, new Sunflower());
             gameModel.setPlant(row, 4, new Peashooter());
         }
 
@@ -68,7 +73,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                     this.cancel();
                 }
             }
-        }, 0, 20);
+        }, 0, 30);
     }
 
     private void showMessageDialog(Object message) {
@@ -87,20 +92,20 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         g.drawString(numOfSun,
                 44 - numOfSun.length() * g.getFont().getSize() / 4, 89);
         List<PlantSeed> seeds = gameModel.getSeeds();
-        for(int i = 0; i < seeds.size(); i++) {
+        for (int i = 0; i < seeds.size(); i++) {
             PlantSeed seed = seeds.get(i);
             g.drawImage(new ImageIcon(seed.getImagePath()).getImage(),
                     85 + i * 53, 15, null);
-            if(!seed.goodToPlant(gameModel)) {
-                Graphics2D g2d = (Graphics2D)g;
+            if (!seed.goodToPlant(gameModel)) {
+                Graphics2D g2d = (Graphics2D) g;
                 g2d.setComposite(AlphaComposite
                         .getInstance(AlphaComposite.SRC_OVER, 0.5f));
                 g2d.setColor(Color.GRAY);
                 g2d.fillRect(85 + i * 53, 15, 53, 75);
-                if(seed.getCoolDown() != 0) {
+                if (seed.getCoolDown() != 0) {
                     g2d.setColor(Color.BLACK);
                     g2d.fillRect(85 + i * 53, 15,
-                            53, (int)(75 * seed.getCoolDown()));
+                            53, (int) (75 * seed.getCoolDown()));
                 }
                 g2d.setComposite(AlphaComposite
                         .getInstance(AlphaComposite.SRC_OVER, 1.0f));
@@ -110,38 +115,44 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
 
         int blockWidth = gameModel.getBlockWidth();
         int blockHeight = gameModel.getBlockHeight();
-
+        //绘制植物
         for (int row = 0; row < gameModel.getRows(); row++) {
             for (int col = 0; col < gameModel.getCols(); col++) {
                 Plant plant = gameModel.getPlant(row, col);
                 if (plant == null)
                     continue;
                 Image image = new ImageIcon(plant.getCurrentImagePath()).getImage();
-                g.drawImage(image, (int) ((col + 0.5) * blockWidth - image.getWidth(null) / 2.0),
-                        (int) ((row + 1) * blockHeight - image.getHeight(null) / 2.0), null);
+                g.drawImage(image, (int) (deltaX + (col + 0.5) * blockWidth - image.getWidth(null) / 2.0),
+                        (int) (deltaY + (row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
             }
         }
-
+        //绘制僵尸
         for (int row = 0; row < gameModel.getRows(); row++) {
             java.util.List<Zombie> zombies = gameModel.getZombies(row);
 //            try {
-                for (Zombie zombie : zombies) {
-                    Image image = new ImageIcon(zombie.getCurrentImagePath()).getImage();
-                    g.drawImage(image, (int) (zombie.getX() - image.getWidth(null) / 2.0),
-                            (int) ((row + 1) * blockHeight - image.getHeight(null) / 2.0), null);
-                }
+            for (Zombie zombie : zombies) {
+                Image image = new ImageIcon(zombie.getCurrentImagePath()).getImage();
+                g.drawImage(image, (int) (deltaX + zombie.getX() - image.getWidth(null) / 2.0),
+                        (int) (deltaY + (row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
+            }
 //            } catch (Exception ignored) {
 //
 //            }
         }
-
+        //绘制子弹
         for (int row = 0; row < gameModel.getRows(); row++) {
             List<Bullet> bullets = gameModel.getBullets(row);
             for (Bullet bullet : bullets) {
                 Image image = new ImageIcon(bullet.getCurrentImagePath()).getImage();
-                g.drawImage(image, (int) (bullet.getX() - image.getWidth(null) / 2.0),
-                        (int) ((row + 1) * blockHeight - image.getHeight(null) / 2.0), null);
+                g.drawImage(image, (int) (deltaX + bullet.getX() - image.getWidth(null) / 2.0),
+                        (int) (deltaY + (row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
             }
+        }
+        //绘制阳光
+        for (Sun sun : gameModel.getSuns()) {
+            Image image = new ImageIcon(sun.getCurrentImagePath()).getImage();
+            g.drawImage(image, (int) (deltaX / 2.0 + sun.getX() - image.getWidth(null) / 2.0),
+                    (int) (deltaY + deltaY + sun.getY() - image.getHeight(null) / 2.0), null);
         }
     }
 

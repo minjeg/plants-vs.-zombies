@@ -43,6 +43,6 @@ public abstract class PlantSeed {
 
     // 获取当前冷却时间和最大冷却时间的商, 用于界面设计
     public double getCoolDown() {
-        return (double)currentCoolDown / coolDown;
+        return (double) currentCoolDown / coolDown;
     }
 }
