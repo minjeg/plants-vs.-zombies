@@ -13,13 +13,13 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class BackGroundPanel extends JPanel {
+public class MainPanel extends JPanel {
     private final Image background =
             new ImageIcon("images/Background.jpg").getImage();
     private GameModel gameModel = new GameModel(5, 9, 720, 500,
             20, 0);
 
-    public BackGroundPanel() {
+    public MainPanel() {
         super();
         this.setBounds(0, 0, 835, 635);
 
@@ -80,15 +80,15 @@ public class BackGroundPanel extends JPanel {
 
         for (int row = 0; row < gameModel.getRows(); row++) {
             java.util.List<Zombie> zombies = gameModel.getZombies(row);
-            try {
+//            try {
                 for (Zombie zombie : zombies) {
                     Image image = new ImageIcon(zombie.getCurrentImagePath()).getImage();
                     g.drawImage(image, (int) (zombie.getX() - image.getWidth(null) / 2.0),
                             (int) ((row + 1) * blockHeight - image.getHeight(null) / 2.0), null);
                 }
-            } catch (Exception ignored) {
-
-            }
+//            } catch (Exception ignored) {
+//
+//            }
         }
 
         for (int row = 0; row < gameModel.getRows(); row++) {
@@ -99,6 +99,7 @@ public class BackGroundPanel extends JPanel {
                         (int) ((row + 1) * blockHeight - image.getHeight(null) / 2.0), null);
             }
         }
+
 
     }
 }

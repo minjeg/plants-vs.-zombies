@@ -1,7 +1,6 @@
 package view;
 
 import javax.swing.*;
-import java.awt.*;
 
 public class PlayFrame extends JFrame {
 
@@ -17,7 +16,7 @@ public class PlayFrame extends JFrame {
         this.setLayout(null);
 
         this.add(new LawnPanel());
-        this.add(new BackGroundPanel());
+        this.add(new MainPanel());
 
     }
 }

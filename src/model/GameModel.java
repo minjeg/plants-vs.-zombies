@@ -3,6 +3,7 @@ package model;
 import model.bullet.Bullet;
 import model.plant.Plant;
 import model.zombie.Zombie;
+import seed.PlantSeed;
 
 import java.awt.*;
 import java.util.*;
@@ -13,6 +14,7 @@ public class GameModel {
     private final List<List<Zombie>> zombies = new ArrayList<>();
     private final List<List<Bullet>> bullets = new ArrayList<>();
     private final List<Boolean> lawnMowers = new ArrayList<>();
+    private final List<PlantSeed> seedBank = new ArrayList<>();
 
     private int sun;
     private final int rows, cols;
@@ -53,6 +55,8 @@ public class GameModel {
 
     /// 更新植物、僵尸和子弹的数据
     private void update() {
+        check();
+
         //植物更新
         Thread plantThread = new Thread(() -> {
             for (int row = 0; row < rows; ++row) {
@@ -96,7 +100,10 @@ public class GameModel {
             throw new RuntimeException(e);
         }
 
-        check();
+        for(var seed : seedBank)
+            seed.update(this);
+
+//        check();
     }
 
     /// 检查子弹击中僵尸、僵尸攻击植物、更新状态
