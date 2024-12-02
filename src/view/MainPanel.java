@@ -6,6 +6,8 @@ import model.plant.Peashooter;
 import model.plant.Plant;
 import model.zombie.BasicZombie;
 import model.zombie.Zombie;
+import seed.PeashooterSeed;
+import seed.PlantSeed;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,11 +19,13 @@ public class MainPanel extends JPanel {
     private final Image background =
             new ImageIcon("images/Background.jpg").getImage();
     private GameModel gameModel = new GameModel(5, 9, 720, 500,
-            20, 0);
+            20, 500);
+    private static Font STANDARD = new Font("Standard", Font.PLAIN, 15);
 
     public MainPanel() {
         super();
         this.setBounds(0, 0, 835, 635);
+        gameModel.addSeed(new PeashooterSeed());
 
         for (int row = 0; row < gameModel.getRows(); ++row) {
             gameModel.setPlant(row, 4, new Peashooter());
@@ -64,6 +68,19 @@ public class MainPanel extends JPanel {
         super.paintComponent(g);
         g.drawImage(background, -200, 0, null);
 
+        g.drawImage(new ImageIcon("images/SeedBank.png").getImage(),
+                10, 10, null);
+        g.setFont(STANDARD);
+        String numOfSun = Integer.toString(gameModel.getSun());
+        g.drawString(numOfSun,
+                44 - numOfSun.length() * g.getFont().getSize() / 4, 89);
+        List<PlantSeed> seeds = gameModel.getSeeds();
+        for(int i = 0; i < seeds.size(); i++)
+            g.drawImage(new ImageIcon(seeds.get(i).getImagePath())
+                            .getImage()
+                            .getScaledInstance(68, 48, Image.SCALE_DEFAULT),
+                    85 + i * 50, 15, null);
+
         int blockWidth = gameModel.getBlockWidth();
         int blockHeight = gameModel.getBlockHeight();
 
@@ -99,7 +116,5 @@ public class MainPanel extends JPanel {
                         (int) ((row + 1) * blockHeight - image.getHeight(null) / 2.0), null);
             }
         }
-
-
     }
 }

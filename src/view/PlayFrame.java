@@ -15,6 +15,7 @@ public class PlayFrame extends JFrame {
 
         this.setLayout(null);
 
+        this.add(new BankPanel());
         this.add(new LawnPanel());
         this.add(new MainPanel());
 

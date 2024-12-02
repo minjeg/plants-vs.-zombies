@@ -167,7 +167,7 @@ public class GameModel {
 
     public void setPlant(int row, int col, Plant plant) {
         plants.get(row).set(col, plant);
-        sun -= plant.getCost();
+//        sun -= plant.getCost();
     }
 
     public List<Zombie> getZombies(int row) {
@@ -244,5 +244,13 @@ public class GameModel {
         int ret = (pos.x - 80) / getBlockWidth();
         if(ret < 0 || ret > cols) return -1;
         return ret;
+    }
+
+    public List<PlantSeed> getSeeds() {
+        return seedBank;
+    }
+
+    public void addSeed(PlantSeed seed) {
+        seedBank.add(seed);
     }
 }

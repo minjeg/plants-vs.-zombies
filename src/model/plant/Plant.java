@@ -5,15 +5,15 @@ import model.GameModel;
 public abstract class Plant {
     private int health;
     private final int performGap;
-    private final int cost;
+//    private final int cost;
     private State state = State.IDLE;
     private String currentImagePath;
 
     public enum State {IDLE, SHOOTING}
 
-    public Plant(int health, int cost, int performGap) {
+    public Plant(int health, /*int cost, */int performGap) {
         this.health = health;
-        this.cost = cost;
+//        this.cost = cost;
         this.performGap = performGap;
     }
 
@@ -31,9 +31,9 @@ public abstract class Plant {
         return performGap;
     }
 
-    public int getCost() {
-        return cost;
-    }
+//    public int getCost() {
+//        return cost;
+//    }
 
     public State getState() {
         return state;
