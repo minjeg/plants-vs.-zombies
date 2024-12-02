@@ -4,7 +4,9 @@ import model.bullet.Bullet;
 import model.plant.Plant;
 import model.zombie.Zombie;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 public class GameModel {
     private final List<List<Plant>> plants = new ArrayList<>();
@@ -223,5 +225,17 @@ public class GameModel {
 
     public int getUpdateGap() {
         return updateGap;
+    }
+
+    public int getRow(Point pos) {
+        int ret = (pos.y - 60) / getBlockHeight();
+        if(ret < 0 || ret > rows) return -1;
+        return ret;
+    }
+
+    public int getCol(Point pos) {
+        int ret = (pos.x - 80) / getBlockWidth();
+        if(ret < 0 || ret > cols) return -1;
+        return ret;
     }
 }
