@@ -31,10 +31,10 @@ public abstract class PlantSeed {
 
     abstract public Plant getPlant();
 
-    public Plant plant(GameModel model) {
+    public void plant(GameModel model, int row, int col) {
         currentCoolDown = coolDown;
         model.setSun(model.getSun() - cost);
-        return getPlant();
+        model.setPlant(row, col, getPlant());
     }
 
     public void update(GameModel model) {

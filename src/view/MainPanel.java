@@ -17,20 +17,21 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainPanel extends JPanel implements MouseListener, MouseMotionListener {
-    private final Image background =
-            new ImageIcon("images/Background.jpg").getImage();
+    private Image imageFollowMouse = null;
+    private Point mousePos = new Point(410, 5);
     private final GameModel gameModel = new GameModel(5, 9, 720, 500,
             30, 50);
     private int deltaX = 60, deltaY = 60;
 
     private static Font STANDARD = new Font("Standard", Font.PLAIN, 15);
 
-    private boolean isShovel = false;
+    private boolean grabShovel = false;
     private PlantSeed seedInHand = null;
 
 
@@ -42,6 +43,10 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
 
         gameModel.addSeed(new PeashooterSeed());
         gameModel.addSeed(new SunflowerSeed());
+        gameModel.addSeed(new PeashooterSeed());
+        gameModel.addSeed(new SunflowerSeed());
+        gameModel.addSeed(new SunflowerSeed());
+        gameModel.addSeed(new PeashooterSeed());
 
         for (int row = 0; row < gameModel.getRows(); ++row) {
             gameModel.setPlant(row, 0, new Sunflower());
@@ -83,21 +88,32 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawImage(background, -200, 0, null);
 
+        // 绘制背景
+        g.drawImage(new ImageIcon("images/Background.jpg").getImage(),
+                -200, 0, null);
+
+        // 绘制种子槽和铲子槽
         g.drawImage(new ImageIcon("images/SeedBank.png").getImage(),
                 10, 10, null);
+        g.drawImage(new ImageIcon("images/ShovelBank.png").getImage(),
+                413, 10, null);
+
+        // 绘制阳光数
         g.setFont(STANDARD);
         String numOfSun = Integer.toString(gameModel.getSun());
         g.drawString(numOfSun,
                 44 - numOfSun.length() * g.getFont().getSize() / 4, 89);
+
+        // 绘制种子卡片
         List<PlantSeed> seeds = gameModel.getSeeds();
         for (int i = 0; i < seeds.size(); i++) {
             PlantSeed seed = seeds.get(i);
             g.drawImage(new ImageIcon(seed.getImagePath()).getImage(),
                     85 + i * 53, 15, null);
+            // 绘制种子阳光不足和冷却未完成时覆盖的阴影
+            Graphics2D g2d = (Graphics2D) g;
             if (!seed.goodToPlant(gameModel)) {
-                Graphics2D g2d = (Graphics2D) g;
                 g2d.setComposite(AlphaComposite
                         .getInstance(AlphaComposite.SRC_OVER, 0.5f));
                 g2d.setColor(Color.GRAY);
@@ -111,7 +127,24 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                         .getInstance(AlphaComposite.SRC_OVER, 1.0f));
                 g2d.setColor(null);
             }
+
+            // 绘制种子被选中时覆盖的阴影
+            if(seedInHand == seed) {
+                g2d.setComposite(AlphaComposite
+                        .getInstance(AlphaComposite.SRC_OVER, 0.5f));
+                g2d.setColor(Color.BLACK);
+                g2d.fillRect(85 + i * 53, 15, 53, 75);
+                g2d.setComposite(AlphaComposite
+                        .getInstance(AlphaComposite.SRC_OVER, 1.0f));
+                g2d.setColor(null);
+            }
         }
+
+        // 绘制铲子槽里的铲子
+        if(!grabShovel)
+            g.drawImage(new ImageIcon("images/Shovel.png").getImage(),
+                    410, 5, null);
+
 
         int blockWidth = gameModel.getBlockWidth();
         int blockHeight = gameModel.getBlockHeight();
@@ -154,41 +187,95 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
             g.drawImage(image, (int) (deltaX / 2.0 + sun.getX() - image.getWidth(null) / 2.0),
                     (int) (deltaY + deltaY + sun.getY() - image.getHeight(null) / 2.0), null);
         }
+
+        //绘制玩家持有物
+        if(imageFollowMouse != null)
+            g.drawImage(imageFollowMouse,
+                    mousePos.x - imageFollowMouse.getWidth(null) / 2,
+                    mousePos.y - imageFollowMouse.getHeight(null) / 2, null);
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        List<PlantSeed> seeds = gameModel.getSeeds();
-
+        Point p = e.getPoint();
+        mousePos = e.getPoint();
+        if(!grabShovel && seedInHand == null) {
+            int x_diff = p.x - 85;
+            int y_diff = p.y - 15;
+            if(x_diff >= 0 && x_diff <= 318 && y_diff >= 0 && y_diff <= 75) {
+                int i = (318 - x_diff) / 53;
+                if(i < gameModel.getSeeds().size()
+                        && gameModel.getSeeds().get(i).goodToPlant(gameModel)) {
+                    seedInHand = gameModel.getSeeds().get(i);
+                    imageFollowMouse = new ImageIcon(seedInHand
+                            .getPlant()
+                            .getCurrentImagePath())
+                            .getImage();
+                }
+            } else if(x_diff > 318 && x_diff <= 388 && y_diff >= 0 && y_diff <= 72) {
+                grabShovel = true;
+                imageFollowMouse = new ImageIcon("images/Shovel.png")
+                        .getImage();
+            }
+        } else if(grabShovel) {
+            int row = gameModel.getRow(mousePos);
+            int col = gameModel.getCol(mousePos);
+            if(row != -1 && col != -1)
+                gameModel.setPlant(row, col, null);
+            grabShovel = false;
+            imageFollowMouse = null;
+        } else if(seedInHand != null) {
+            int row = gameModel.getRow(mousePos);
+            int col = gameModel.getCol(mousePos);
+            if(row != -1 && col != -1)
+                seedInHand.plant(gameModel, row, col);
+            seedInHand = null;
+            imageFollowMouse = null;
+        }
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
+        Point p = e.getPoint();
+        mousePos = e.getPoint();
+        if(!grabShovel && seedInHand == null) {
+            List<Sun> sunList = gameModel.getSuns();
+            for(int i = 0; i < sunList.size(); i++) {
+                Sun temp = sunList.get(i);
+                int x_diff = p.x - (temp.getX() + deltaX / 2);
+                int y_diff = p.y - (temp.getY() + deltaY * 2);
+                if (x_diff >= -96 && x_diff <= 96 && y_diff >= -96 && y_diff <= 96) {
+                    gameModel.addSunAmount(temp.getAmount());
+                    sunList.remove(i);
+                    return;
+                }
+            }
+        }
 
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-
+        mousePos = e.getPoint();
     }
 
     @Override
     public void mouseEntered(MouseEvent e) {
-
+        mousePos = e.getPoint();
     }
 
     @Override
     public void mouseExited(MouseEvent e) {
-
+        mousePos = e.getPoint();
     }
 
     @Override
     public void mouseDragged(MouseEvent e) {
-
+        mousePos = e.getPoint();
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
-
+        mousePos = e.getPoint();
     }
 }

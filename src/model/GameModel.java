@@ -253,6 +253,14 @@ public class GameModel {
         suns.add(sun);
     }
 
+    public void addSunAmount(int amount) {
+        sun += amount;
+    }
+
+    public void reduceSunAmount(int amount) {
+        this.sun -= amount;
+    }
+
     public int getWidth() {
         return width;
     }
