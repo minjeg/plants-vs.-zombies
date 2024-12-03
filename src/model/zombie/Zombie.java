@@ -1,6 +1,7 @@
 package model.zombie;
 
 import model.GameModel;
+import model.plant.Plant;
 
 public abstract class Zombie {
     private int health;
@@ -19,9 +20,39 @@ public abstract class Zombie {
         this.damage = damage;
     }
 
-    public void update(GameModel gameModel) {
+    public boolean update(GameModel gameModel, int row, int index) {
+        if (!isAlive()) {
+            gameModel.getZombies(row).remove(index);
+            return true;
+        }
         if (state == State.WALKING)
             x -= 1.0 * gameModel.getUpdateGap() * gameModel.getWidth() / speed;
+        int col = getClosestColumn(gameModel);
+        //僵尸到达小推车
+        if (col < 0) {
+            if (gameModel.hasLawnMower(row)) {
+                gameModel.getZombies(row).clear();
+                gameModel.setLawnMower(row,false);
+                return true;
+            }
+            gameModel.setState(GameModel.State.LOSE);
+            return false;
+        }
+        //根据僵尸状态、前方是否有植物进行数据、状态更新
+        Plant plant = gameModel.getPlant(row, col);
+        if (state == Zombie.State.WALKING && plant != null
+                && Math.abs(x - (col + 0.5) * gameModel.getBlockWidth()) < 10)
+            setState(Zombie.State.EATING);
+        else if (state == Zombie.State.EATING) {
+            if (plant == null)
+                setState(Zombie.State.WALKING);
+            else {
+                plant.takeDamage(gameModel.getUpdateGap() * getDamage() / 1000);
+                if (plant.isDead())
+                    setState(Zombie.State.WALKING);
+            }
+        }
+        return false;
     }
 
     public boolean isAlive() {
@@ -38,10 +69,6 @@ public abstract class Zombie {
 
     public int getX() {
         return (int) x;
-    }
-
-    public State getState() {
-        return state;
     }
 
     public void setState(State state) {

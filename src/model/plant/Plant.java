@@ -17,8 +17,12 @@ public abstract class Plant {
 
     public abstract void update(GameModel gameModel, int row, int col);
 
-    public boolean isAlive() {
-        return health > 0;
+    protected int getHealth() {
+        return health;
+    }
+
+    public boolean isDead() {
+        return health <= 0;
     }
 
     public void takeDamage(int damage) {

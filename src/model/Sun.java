@@ -29,13 +29,20 @@ public class Sun {
         this.state = State.IDLE;
     }
 
-    public void update(GameModel gameModel) {
+    //返回当前阳光是否超时
+    public boolean update(GameModel gameModel, int index) {
         timer += gameModel.getUpdateGap();
+        //阳光超时
+        if (timer >= 8000) {
+            gameModel.getSuns().remove(index);
+            return true;
+        }
         if (state == State.MOVING) {
             y += gameModel.getUpdateGap() * destination / speed;
             if (Math.abs(y - destination) < 10)
                 state = State.IDLE;
         }
+        return false;
     }
 
     public int getX() {
@@ -52,9 +59,5 @@ public class Sun {
 
     public String getCurrentImagePath() {
         return currentImagePath;
-    }
-
-    public boolean isTimeout() {
-        return timer >= 8000;
     }
 }

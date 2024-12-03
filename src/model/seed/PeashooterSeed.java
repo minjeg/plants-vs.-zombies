@@ -5,7 +5,7 @@ import model.plant.Plant;
 
 public class PeashooterSeed extends PlantSeed {
     public PeashooterSeed() {
-        super(7500, 7500, 100,
+        super(7500, 0, 100,
                 "images/PlantSeeds/PeashooterSeed.png");
     }
 

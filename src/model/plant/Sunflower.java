@@ -14,6 +14,10 @@ public class Sunflower extends Plant {
 
     @Override
     public void update(GameModel gameModel, int row, int col) {
+        if (isDead()) {
+            gameModel.setPlant(row, col, null);
+            return;
+        }
         timer += gameModel.getUpdateGap();
         if (timer >= getPerformGap()) {
             gameModel.addSun(new Sun(gameModel, row, col));

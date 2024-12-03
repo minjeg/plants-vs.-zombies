@@ -5,7 +5,7 @@ import model.plant.Sunflower;
 
 public class SunflowerSeed extends PlantSeed {
     public SunflowerSeed() {
-        super(7500, 4100, 50, "images/PlantSeeds/SunflowerSeed.png");
+        super(7500, 0, 50, "images/PlantSeeds/SunflowerSeed.png");
     }
 
     @Override

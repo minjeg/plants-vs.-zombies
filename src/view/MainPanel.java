@@ -6,6 +6,8 @@ import model.bullet.Bullet;
 import model.plant.Peashooter;
 import model.plant.Plant;
 import model.plant.Sunflower;
+import model.plant.WallNut;
+import model.seed.WallNutSeed;
 import model.zombie.BasicZombie;
 import model.zombie.Zombie;
 import model.seed.PeashooterSeed;
@@ -17,10 +19,11 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import static javax.swing.JOptionPane.showMessageDialog;
 
 public class MainPanel extends JPanel implements MouseListener, MouseMotionListener {
     private Image imageFollowMouse = null;
@@ -43,14 +46,15 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
 
         gameModel.addSeed(new PeashooterSeed());
         gameModel.addSeed(new SunflowerSeed());
+        gameModel.addSeed(new WallNutSeed());
         gameModel.addSeed(new PeashooterSeed());
         gameModel.addSeed(new SunflowerSeed());
-        gameModel.addSeed(new SunflowerSeed());
-        gameModel.addSeed(new PeashooterSeed());
+        gameModel.addSeed(new WallNutSeed());
 
         for (int row = 0; row < gameModel.getRows(); ++row) {
             gameModel.setPlant(row, 0, new Sunflower());
             gameModel.setPlant(row, 4, new Peashooter());
+            gameModel.setPlant(row, 5, new WallNut());
         }
 
         java.util.Timer timer = new Timer();
@@ -71,18 +75,14 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                 if (gameModel.getState() == GameModel.State.RUNNING)
                     repaint();
                 else if (gameModel.getState() == GameModel.State.WIN) {
-                    showMessageDialog("You win!");
+                    showMessageDialog(MainPanel.this, "You win!");
                     this.cancel();
                 } else if (gameModel.getState() == GameModel.State.LOSE) {
-                    showMessageDialog("You lose!");
+                    showMessageDialog(MainPanel.this, "You lose!");
                     this.cancel();
                 }
             }
         }, 0, 30);
-    }
-
-    private void showMessageDialog(Object message) {
-        JOptionPane.showMessageDialog(this, message);
     }
 
     @Override
@@ -129,7 +129,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
             }
 
             // 绘制种子被选中时覆盖的阴影
-            if(seedInHand == seed) {
+            if (seedInHand == seed) {
                 g2d.setComposite(AlphaComposite
                         .getInstance(AlphaComposite.SRC_OVER, 0.5f));
                 g2d.setColor(Color.BLACK);
@@ -141,7 +141,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         }
 
         // 绘制铲子槽里的铲子
-        if(!grabShovel)
+        if (!grabShovel)
             g.drawImage(new ImageIcon("images/Shovel.png").getImage(),
                     410, 5, null);
 
@@ -162,15 +162,11 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         //绘制僵尸
         for (int row = 0; row < gameModel.getRows(); row++) {
             java.util.List<Zombie> zombies = gameModel.getZombies(row);
-//            try {
             for (Zombie zombie : zombies) {
                 Image image = new ImageIcon(zombie.getCurrentImagePath()).getImage();
                 g.drawImage(image, (int) (deltaX + zombie.getX() - image.getWidth(null) / 2.0),
                         (int) (deltaY + (row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
             }
-//            } catch (Exception ignored) {
-//
-//            }
         }
         //绘制子弹
         for (int row = 0; row < gameModel.getRows(); row++) {
@@ -189,7 +185,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         }
 
         //绘制玩家持有物
-        if(imageFollowMouse != null)
+        if (imageFollowMouse != null)
             g.drawImage(imageFollowMouse,
                     mousePos.x - imageFollowMouse.getWidth(null) / 2,
                     mousePos.y - imageFollowMouse.getHeight(null) / 2, null);
@@ -199,12 +195,12 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
     public void mouseClicked(MouseEvent e) {
         Point p = e.getPoint();
         mousePos = e.getPoint();
-        if(!grabShovel && seedInHand == null) {
+        if (!grabShovel && seedInHand == null) {
             int x_diff = p.x - 85;
             int y_diff = p.y - 15;
-            if(x_diff >= 0 && x_diff <= 318 && y_diff >= 0 && y_diff <= 75) {
+            if (x_diff >= 0 && x_diff <= 318 && y_diff >= 0 && y_diff <= 75) {
                 int i = (318 - x_diff) / 53;
-                if(i < gameModel.getSeeds().size()
+                if (i < gameModel.getSeeds().size()
                         && gameModel.getSeeds().get(i).goodToPlant(gameModel)) {
                     seedInHand = gameModel.getSeeds().get(i);
                     imageFollowMouse = new ImageIcon(seedInHand
@@ -212,22 +208,22 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                             .getCurrentImagePath())
                             .getImage();
                 }
-            } else if(x_diff > 318 && x_diff <= 388 && y_diff >= 0 && y_diff <= 72) {
+            } else if (x_diff > 318 && x_diff <= 388 && y_diff >= 0 && y_diff <= 72) {
                 grabShovel = true;
                 imageFollowMouse = new ImageIcon("images/Shovel.png")
                         .getImage();
             }
-        } else if(grabShovel) {
+        } else if (grabShovel) {
             int row = gameModel.getRow(mousePos);
             int col = gameModel.getCol(mousePos);
-            if(row != -1 && col != -1)
+            if (row != -1 && col != -1)
                 gameModel.setPlant(row, col, null);
             grabShovel = false;
             imageFollowMouse = null;
-        } else if(seedInHand != null) {
+        } else if (seedInHand != null) {
             int row = gameModel.getRow(mousePos);
             int col = gameModel.getCol(mousePos);
-            if(row != -1 && col != -1)
+            if (row != -1 && col != -1)
                 seedInHand.plant(gameModel, row, col);
             seedInHand = null;
             imageFollowMouse = null;
@@ -238,14 +234,14 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
     public void mousePressed(MouseEvent e) {
         Point p = e.getPoint();
         mousePos = e.getPoint();
-        if(!grabShovel && seedInHand == null) {
+        if (!grabShovel && seedInHand == null) {
             List<Sun> sunList = gameModel.getSuns();
-            for(int i = 0; i < sunList.size(); i++) {
+            for (int i = 0; i < sunList.size(); i++) {
                 Sun temp = sunList.get(i);
                 int x_diff = p.x - (temp.getX() + deltaX / 2);
                 int y_diff = p.y - (temp.getY() + deltaY * 2);
                 if (x_diff >= -96 && x_diff <= 96 && y_diff >= -96 && y_diff <= 96) {
-                    gameModel.addSunAmount(temp.getAmount());
+                    gameModel.setSun(gameModel.getSun() + temp.getAmount());
                     sunList.remove(i);
                     return;
                 }

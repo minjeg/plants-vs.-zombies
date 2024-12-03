@@ -64,7 +64,6 @@ public class GameModel {
 
     /// 更新植物、僵尸、子弹、太阳、种子的数据
     private void update() {
-        check();
         //植物更新
         Thread plantThread = new Thread(() -> {
             for (int row = 0; row < rows; ++row) {
@@ -76,25 +75,14 @@ public class GameModel {
             }
         });
         plantThread.start();
-        //僵尸更新
-        Thread zombieThread = new Thread(() -> {
-            for (int row = 0; row < rows; ++row) {
-                List<Zombie> rowZombies = zombies.get(row);
-                for (Zombie zombie : rowZombies)
-                    zombie.update(this);
-            }
-        });
-        zombieThread.start();
         //子弹更新
         Thread bulletThread = new Thread(() -> {
             for (int row = 0; row < rows; ++row) {
                 List<Bullet> rowBullets = bullets.get(row);
-                for (int i = 0; i < rowBullets.size(); ++i) {
-                    Bullet bullet = rowBullets.get(i);
-                    bullet.update(this);
-                    if (bullet.getX() > width) {
-                        rowBullets.remove(i);
-                        --i;
+                for (int index = 0; index < rowBullets.size(); ++index) {
+                    Bullet bullet = rowBullets.get(index);
+                    if (bullet.update(this, row, index)) {
+                        --index;
                     }
                 }
             }
@@ -102,91 +90,36 @@ public class GameModel {
         bulletThread.start();
         //太阳更新
         Thread sunThread = new Thread(() -> {
-            for (Sun sun : suns)
-                sun.update(this);
+            for (int index = 0; index < suns.size(); ++index) {
+                Sun sun = suns.get(index);
+                if (sun.update(this, index)) {
+                    --index;
+                }
+            }
         });
         sunThread.start();
         //种子更新
         Thread seedThread = new Thread(() -> {
-            for (var seed : seedBank)
+            for (PlantSeed seed : seedBank)
                 seed.update(this);
         });
         seedThread.start();
-        //保证植物、僵尸和子弹数据都完成更新
+        //僵尸更新
+        for (int row = 0; row < rows; ++row) {
+            List<Zombie> rowZombies = zombies.get(row);
+            for (int index = 0; index < rowZombies.size(); ++index) {
+                Zombie zombie = rowZombies.get(index);
+                if (zombie.update(this, row, index)) {
+                    --index;
+                }
+            }
+        }
+        //保证数据都完成更新
         try {
             plantThread.join();
-            zombieThread.join();
             bulletThread.join();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /// 检查子弹击中僵尸、僵尸攻击植物、阳光超时、更新状态
-    private void check() {
-        //检查阳光超时
-        Thread sunCheckThread = new Thread(() -> {
-            for (int i = 0; i < suns.size(); ++i) {
-                if (suns.get(i).isTimeout()) {
-                    suns.remove(i);
-                    --i;
-                }
-            }
-        });
-        sunCheckThread.start();
-
-        for (int i = 0; i < rows; ++i) {
-            List<Zombie> rowZombies = zombies.get(i);
-            List<Bullet> rowBullets = bullets.get(i);
-            List<Plant> rowPlants = plants.get(i);
-            for (int j = 0; j < rowZombies.size(); ++j) {
-                Zombie zombie = rowZombies.get(j);
-                //检查子弹击中僵尸
-                for (int k = 0; k < rowBullets.size(); ++k) {
-                    Bullet bullet = rowBullets.get(k);
-                    if (Math.abs(zombie.getX() - bullet.getX()) < 10) {
-                        zombie.takeDamage(bullet.getDamage());
-                        rowBullets.remove(k);
-                        --k;
-                        if (!zombie.isAlive()) {
-                            rowZombies.remove(j);
-                            --j;
-                        }
-                    }
-                }
-                //若僵尸还存活
-                if (zombie.isAlive()) {
-                    int col = zombie.getClosestColumn(this);
-                    //僵尸到达小推车
-                    if (col < 0) {
-                        //有小推车
-                        if (getLawnMowers(i)) {
-                            rowZombies = new ArrayList<>();
-                            lawnMowers.set(i, false);
-                            continue;
-                        }
-                        //无小推车
-                        state = State.LOSE;
-                        return;
-                    }
-                    Plant plant = rowPlants.get(col);
-                    //根据僵尸状态、前方是否有植物进行数据、状态更新
-                    if (zombie.getState() == Zombie.State.WALKING && plant != null
-                            && Math.abs(zombie.getX() - (col + 0.5) * blockWidth) < 10) {
-                        zombie.setState(Zombie.State.EATING);
-                    } else if (zombie.getState() == Zombie.State.EATING) {
-                        assert plant != null;
-                        plant.takeDamage(updateGap * zombie.getDamage() / 1000);
-                        if (!plant.isAlive()) {
-                            zombie.setState(Zombie.State.WALKING);
-                            rowPlants.set(col, null);
-                        }
-                    }
-                }
-            }
-        }
-        try {
-            sunCheckThread.join();
+            sunThread.join();
+            seedThread.join();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -195,6 +128,10 @@ public class GameModel {
     /// 获取游戏状态
     public State getState() {
         return state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
     }
 
     public void pauseGame() {
@@ -229,8 +166,12 @@ public class GameModel {
         bullets.get(row).add(bullet);
     }
 
-    public boolean getLawnMowers(int row) {
+    public Boolean hasLawnMower(int row) {
         return lawnMowers.get(row);
+    }
+
+    public void setLawnMower(int row, boolean whether) {
+        lawnMowers.set(row, whether);
     }
 
     /// 获取阳光总数
@@ -251,14 +192,6 @@ public class GameModel {
     /// 添加阳光
     public void addSun(Sun sun) {
         suns.add(sun);
-    }
-
-    public void addSunAmount(int amount) {
-        sun += amount;
-    }
-
-    public void reduceSunAmount(int amount) {
-        this.sun -= amount;
     }
 
     public int getWidth() {

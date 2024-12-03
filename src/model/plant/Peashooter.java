@@ -14,6 +14,10 @@ public class Peashooter extends Plant {
 
     @Override
     public void update(GameModel gameModel, int row, int col) {
+        if (isDead()) {
+            gameModel.setPlant(row, col, null);
+            return;
+        }
         if (getState() == State.IDLE && !gameModel.getZombies(row).isEmpty()) {
             setState(State.SHOOTING);
             timer = getPerformGap();
