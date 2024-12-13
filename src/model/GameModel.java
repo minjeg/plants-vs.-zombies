@@ -10,19 +10,24 @@ import java.util.*;
 import java.util.List;
 
 public class GameModel {
-    private final List<List<Plant>> plants = new ArrayList<>();
-    private final List<List<Zombie>> zombies = new ArrayList<>();
-    private final List<List<Bullet>> bullets = new ArrayList<>();
-    private final List<Boolean> lawnMowers = new ArrayList<>();
-    private final List<PlantSeed> seedBank = new ArrayList<>();
-    private final List<Sun> suns = new ArrayList<>();
+    private final List<List<Plant>> plants = new ArrayList<>();     // 存储植物信息
+    private final List<List<Zombie>> zombies = new ArrayList<>();   // 存储场上僵尸信息
+    private final List<List<Bullet>> bullets = new ArrayList<>();   // 存储场上子弹信息
+    private final List<Boolean> lawnMowers = new ArrayList<>();     // 存储小推车信息
+    private final List<PlantSeed> seedBank = new ArrayList<>();     // 存储植物卡槽信息
+    private final List<Sun> suns = new ArrayList<>();               // 存储场上阳光信息
 
-    private int sun;
-    private final int rows, cols;
-    private int width, height;
-    private int blockWidth, blockHeight;
-    private int updateGap;
-    private State state = State.RUNNING;
+    private int sun;                        // 阳光数量
+    private final int rows, cols;           // 行数和列数
+    private int width, height;              // 草坪的宽和高
+    private int blockWidth, blockHeight;    // 单个格子的宽和高
+
+    private boolean grabShovel = false;     // 是否持有铲子
+    private PlantSeed seedInHand = null;    // 正在使用的植物种子, null则代表手上不持有任何种子
+
+
+    private int updateGap;                  // 数据更新间隔
+    private State state = State.RUNNING;    // 关卡状态
 
     public enum State {PAUSED, RUNNING, WIN, LOSE}
 
@@ -142,6 +147,22 @@ public class GameModel {
         state = State.RUNNING;
     }
 
+    public boolean isGrabShovel() {
+        return grabShovel;
+    }
+
+    public void setGrabShovel(boolean grabShovel) {
+        this.grabShovel = grabShovel;
+    }
+
+    public PlantSeed getSeedInHand() {
+        return seedInHand;
+    }
+
+    public void setSeedInHand(PlantSeed seedInHand) {
+        this.seedInHand = seedInHand;
+    }
+
     public Plant getPlant(int row, int col) {
         return plants.get(row).get(col);
     }
@@ -232,15 +253,15 @@ public class GameModel {
     }
 
     public int getRow(Point pos) {
-        int ret = (pos.y - 60) / getBlockHeight();
-        if (ret < 0 || ret > rows) return -1;
-        return ret;
+        double ret = (pos.y - 60.0) / getBlockHeight();
+        if (ret < 0 || ret >= rows) return -1;
+        return (int)ret;
     }
 
     public int getCol(Point pos) {
-        int ret = (pos.x - 80) / getBlockWidth();
-        if (ret < 0 || ret > cols) return -1;
-        return ret;
+        double ret = (pos.x - 80.0) / getBlockWidth();
+        if (ret < 0 || ret >= cols) return -1;
+        return (int)ret;
     }
 
     public List<PlantSeed> getSeeds() {
