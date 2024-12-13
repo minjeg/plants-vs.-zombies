@@ -3,11 +3,12 @@ package model.bullet;
 import model.GameModel;
 import model.zombie.Zombie;
 
+import java.io.Serializable;
 import java.util.List;
 
-public abstract class Bullet {
+public abstract class Bullet implements Serializable {
     private double x;
-    private final int speed;//从发射位置到边界耗费
+    private final int speed;//从发射位置到边界耗费时间
     private final int damage;
     private String currentImagePath;
 

@@ -1,6 +1,8 @@
 package view;
 
 import model.GameModel;
+import model.LawnMower;
+import model.Level;
 import model.Sun;
 import model.bullet.Bullet;
 import model.plant.Peashooter;
@@ -28,18 +30,19 @@ import static javax.swing.JOptionPane.showMessageDialog;
 public class MainPanel extends JPanel implements MouseListener, MouseMotionListener {
     private Image imageFollowMouse = null;
     private Point mousePos = new Point(410, 5);
-    private final GameModel gameModel = new GameModel(5, 9, 720, 500,
-            30, 50);
+    private final GameModel gameModel;
     private int deltaX = 60, deltaY = 60;
 
     private static Font STANDARD = new Font("Standard", Font.PLAIN, 15);
 
-    public MainPanel() {
+    public MainPanel(Level level) {
         super();
         this.setBounds(0, 0, 835, 635);
         this.setLayout(null);
         this.addMouseListener(this);
         this.addMouseMotionListener(this);
+
+        gameModel = new GameModel(720, 500, 30, level);
 
         gameModel.addSeed(new PeashooterSeed());
         gameModel.addSeed(new SunflowerSeed());
@@ -48,23 +51,23 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
 //        gameModel.addSeed(new SunflowerSeed());
 //        gameModel.addSeed(new WallNutSeed());
 
-        for (int row = 0; row < gameModel.getRows(); ++row) {
-            gameModel.setPlant(row, 0, new Sunflower());
-            gameModel.setPlant(row, 4, new Peashooter());
-            gameModel.setPlant(row, 5, new WallNut());
-        }
+//        for (int row = 0; row < gameModel.getRows(); ++row) {
+//            gameModel.setPlant(row, 0, new Sunflower());
+//            gameModel.setPlant(row, 4, new Peashooter());
+//            gameModel.setPlant(row, 5, new WallNut());
+//        }
 
         java.util.Timer timer = new Timer();
 
-        timer.schedule(new TimerTask() {
-            private int row = 0;
-
-            @Override
-            public void run() {
-                gameModel.addZombie(row, new BasicZombie(gameModel));
-                row = (row + 1) % gameModel.getRows();
-            }
-        }, 0, 2000);
+//        timer.schedule(new TimerTask() {
+//            private int row = 0;
+//
+//            @Override
+//            public void run() {
+//                gameModel.addZombie(row, new BasicZombie(gameModel));
+//                row = (row + 1) % gameModel.getRows();
+//            }
+//        }, 0, 2000);
 
         timer.schedule(new TimerTask() {
             @Override
@@ -179,6 +182,16 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
             Image image = new ImageIcon(sun.getCurrentImagePath()).getImage();
             g.drawImage(image, (int) (deltaX / 2.0 + sun.getX() - image.getWidth(null) / 2.0),
                     (int) (deltaY + deltaY + sun.getY() - image.getHeight(null) / 2.0), null);
+        }
+
+        //绘制割草机
+        for (int row = 0; row < gameModel.getRows(); ++row) {
+            LawnMower lawnMower = gameModel.getLawnMower(row);
+            if (lawnMower == null)
+                continue;
+            Image image = new ImageIcon(lawnMower.getCurrentImagePath()).getImage();
+            g.drawImage(image, (int) (deltaX + lawnMower.getX() - image.getWidth(null) / 2.0),
+                    (int) (deltaY + (row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
         }
 
         //绘制玩家持有物

@@ -3,7 +3,9 @@ package model.seed;
 import model.GameModel;
 import model.plant.Plant;
 
-public abstract class PlantSeed {
+import java.io.Serializable;
+
+public abstract class PlantSeed implements Serializable {
     private int coolDown;
     private int currentCoolDown;
     private int cost;

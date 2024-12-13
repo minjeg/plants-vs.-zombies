@@ -1,6 +1,5 @@
 import view.PlayFrame;
 
-import javax.swing.*;
 import java.awt.*;
 
 public class Play {

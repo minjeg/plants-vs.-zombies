@@ -1,12 +1,10 @@
 package model.zombie;
 
-import model.GameModel;
-
 public class BasicZombie extends Zombie {
     private static int count = 0;
 
-    public BasicZombie(GameModel gameModel) {
-        super(270, gameModel.getWidth(), 50000, 100);
+    public BasicZombie() {
+        super(270, -100, 50000, 100);
         setState(State.WALKING);
     }
 

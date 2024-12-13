@@ -2,7 +2,9 @@ package model.plant;
 
 import model.GameModel;
 
-public abstract class Plant {
+import java.io.Serializable;
+
+public abstract class Plant implements Serializable {
     private int health;
     private final int performGap;
     private State state = State.IDLE;

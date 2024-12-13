@@ -1,6 +1,8 @@
 package model;
 
-public class Sun {
+import java.io.Serializable;
+
+public class Sun implements Serializable {
     private int x, y;
     /// 阳光数量
     private final int amount = 25;
