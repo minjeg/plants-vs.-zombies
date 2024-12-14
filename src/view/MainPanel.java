@@ -148,6 +148,35 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
 
         int blockWidth = gameModel.getBlockWidth();
         int blockHeight = gameModel.getBlockHeight();
+        // 绘制植物底下的影子
+        for (int row = 0; row < gameModel.getRows(); row++) {
+            for (int col = 0; col < gameModel.getCols(); col++) {
+                Plant plant = gameModel.getPlant(row, col);
+                if (plant == null)
+                    continue;
+                Image image = new ImageIcon("images/shadow.png").getImage();
+                g.drawImage(image, (int) (deltaX + (col + 0.5) * blockWidth - image.getWidth(null) / 2.0),
+                        (int) (deltaY + (row + 0.5) * blockHeight + image.getHeight(null) / 2.0), null);
+            }
+        }
+        // 绘制僵尸底下的影子
+        for (int row = 0; row < gameModel.getRows(); row++) {
+            java.util.List<Zombie> zombies = gameModel.getZombies(row);
+            for (Zombie zombie : zombies) {
+                Image image = new ImageIcon("images/shadow.png").getImage();
+                g.drawImage(image, (int) (deltaX + zombie.getX() - image.getWidth(null) / 2.0),
+                        (int) (deltaY + (row + 0.5) * blockHeight + image.getHeight(null) / 2.0), null);
+            }
+        }
+        // 绘制子弹下方的影子
+        for (int row = 0; row < gameModel.getRows(); row++) {
+            List<Bullet> bullets = gameModel.getBullets(row);
+            for (Bullet bullet : bullets) {
+                Image image = new ImageIcon("images/Bullet/bulletShadow.png").getImage();
+                g.drawImage(image, (int) (deltaX + bullet.getX() - image.getWidth(null) / 2.0),
+                        (int) (deltaY + (row + 0.5) * blockHeight + image.getHeight(null) / 2.0), null);
+            }
+        }
         //绘制植物
         for (int row = 0; row < gameModel.getRows(); row++) {
             for (int col = 0; col < gameModel.getCols(); col++) {
@@ -177,6 +206,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                         (int) (deltaY + (row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
             }
         }
+
         //绘制阳光
         for (Sun sun : gameModel.getSuns()) {
             Image image = new ImageIcon(sun.getCurrentImagePath()).getImage();
