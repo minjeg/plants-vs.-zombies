@@ -1,6 +1,9 @@
 package view;
 
+import model.Level;
+
 import javax.swing.*;
+import java.io.IOException;
 
 public class PlayFrame extends JFrame {
 
@@ -15,6 +18,12 @@ public class PlayFrame extends JFrame {
         this.setLayout(null);
         this.setResizable(false);
 
-        this.add(new MainPanel());
+        Level level;
+        try {
+            level = Level.load("level.lv");
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        this.add(new MainPanel(level));
     }
 }

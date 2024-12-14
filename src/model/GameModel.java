@@ -6,38 +6,40 @@ import model.zombie.Zombie;
 import model.seed.PlantSeed;
 
 import java.awt.*;
+import java.io.*;
 import java.util.*;
 import java.util.List;
 
-public class GameModel {
-    private final List<List<Plant>> plants = new ArrayList<>();     // 存储植物信息
-    private final List<List<Zombie>> zombies = new ArrayList<>();   // 存储场上僵尸信息
-    private final List<List<Bullet>> bullets = new ArrayList<>();   // 存储场上子弹信息
-    private final List<Boolean> lawnMowers = new ArrayList<>();     // 存储小推车信息
-    private final List<PlantSeed> seedBank = new ArrayList<>();     // 存储植物卡槽信息
-    private final List<Sun> suns = new ArrayList<>();               // 存储场上阳光信息
+public class GameModel implements Serializable {
+    private final List<List<Plant>> plants = new ArrayList<>();
+    private final List<List<Zombie>> zombies = new ArrayList<>();
+    private final List<List<Bullet>> bullets = new ArrayList<>();
+    private final List<LawnMower> lawnMowers = new ArrayList<>();
+    private final List<PlantSeed> seedBank = new ArrayList<>();
+    private final List<Sun> suns = new ArrayList<>();
 
-    private int sun;                        // 阳光数量
-    private final int rows, cols;           // 行数和列数
-    private int width, height;              // 草坪的宽和高
-    private int blockWidth, blockHeight;    // 单个格子的宽和高
+    private final Level level;
+    private int sun;
+    private final int rows, cols;
+    private int width, height;
+    private int blockWidth, blockHeight;
 
-    private boolean grabShovel = false;     // 是否持有铲子
-    private PlantSeed seedInHand = null;    // 正在使用的植物种子, null则代表手上不持有任何种子
+    private boolean grabShovel = false;
+    private PlantSeed seedInHand = null;
 
-
-    private int updateGap;                  // 数据更新间隔
-    private State state = State.RUNNING;    // 关卡状态
+    private final int updateGap;
+    private State state = State.RUNNING;
 
     public enum State {PAUSED, RUNNING, WIN, LOSE}
 
-    public GameModel(int rows, int cols, int width, int height, int updateGap, int sun) {
-        this.rows = rows;
-        this.cols = cols;
+    public GameModel(int width, int height, int updateGap, Level level) {
         this.width = width;
         this.height = height;
         this.updateGap = updateGap;
-        this.sun = sun;
+        this.level = level;
+        this.rows = level.getRows();
+        this.cols = level.getCols();
+        this.sun = level.getInitialSun();
         this.blockWidth = width / cols;
         this.blockHeight = height / rows;
 
@@ -45,7 +47,7 @@ public class GameModel {
             zombies.add(new ArrayList<>());
             plants.add(new ArrayList<>());
             bullets.add(new ArrayList<>());
-            lawnMowers.add(true);
+            lawnMowers.add(new LawnMower(this));
             for (int j = 0; j < cols; ++j)
                 plants.get(i).add(null);
         }
@@ -67,8 +69,23 @@ public class GameModel {
         }, 0, updateGap);
     }
 
+    public static void save(GameModel gameModel, String name) throws IOException {
+        FileOutputStream fileOutputStream = new FileOutputStream(name);
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+        objectOutputStream.writeObject(gameModel);
+        objectOutputStream.close();
+    }
+
+    public static GameModel load(String name) throws IOException, ClassNotFoundException {
+        FileInputStream fileInputStream = new FileInputStream(name);
+        ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+        GameModel gameModel = (GameModel) objectInputStream.readObject();
+        objectInputStream.close();
+        return gameModel;
+    }
+
     /// 更新植物、僵尸、子弹、太阳、种子的数据
-    private void update() {
+    private synchronized void update() {
         //植物更新
         Thread plantThread = new Thread(() -> {
             for (int row = 0; row < rows; ++row) {
@@ -109,6 +126,20 @@ public class GameModel {
                 seed.update(this);
         });
         seedThread.start();
+        //割草机更新
+        Thread lawnMowerThread = new Thread(() -> {
+            for (int row = 0; row < rows; ++row) {
+                LawnMower lawnMower = lawnMowers.get(row);
+                if (lawnMower != null)
+                    lawnMower.update(this, row);
+            }
+        });
+        lawnMowerThread.start();
+        //关卡更新
+        Thread levelThread = new Thread(() -> {
+            level.update(this);
+        });
+        levelThread.start();
         //僵尸更新
         for (int row = 0; row < rows; ++row) {
             List<Zombie> rowZombies = zombies.get(row);
@@ -125,6 +156,8 @@ public class GameModel {
             bulletThread.join();
             sunThread.join();
             seedThread.join();
+            lawnMowerThread.join();
+            levelThread.join();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -187,12 +220,12 @@ public class GameModel {
         bullets.get(row).add(bullet);
     }
 
-    public Boolean hasLawnMower(int row) {
+    public LawnMower getLawnMower(int row) {
         return lawnMowers.get(row);
     }
 
-    public void setLawnMower(int row, boolean whether) {
-        lawnMowers.set(row, whether);
+    public void setLawnMower(int row, LawnMower lawnMower) {
+        lawnMowers.set(row, lawnMower);
     }
 
     /// 获取阳光总数
@@ -255,13 +288,13 @@ public class GameModel {
     public int getRow(Point pos) {
         double ret = (pos.y - 60.0) / getBlockHeight();
         if (ret < 0 || ret >= rows) return -1;
-        return (int)ret;
+        return (int) ret;
     }
 
     public int getCol(Point pos) {
         double ret = (pos.x - 80.0) / getBlockWidth();
         if (ret < 0 || ret >= cols) return -1;
-        return (int)ret;
+        return (int) ret;
     }
 
     public List<PlantSeed> getSeeds() {

@@ -1,9 +1,12 @@
 package model.zombie;
 
 import model.GameModel;
+import model.LawnMower;
 import model.plant.Plant;
 
-public abstract class Zombie {
+import java.io.Serializable;
+
+public abstract class Zombie implements Serializable{
     private int health;
     private double x;
     private final int speed;
@@ -21,27 +24,31 @@ public abstract class Zombie {
     }
 
     public boolean update(GameModel gameModel, int row, int index) {
-        if (!isAlive()) {
+        if (isDead()) {
             gameModel.getZombies(row).remove(index);
             return true;
         }
-        if (state == State.WALKING)
+        if (state == State.WALKING) {
+            if(x==-100)
+                x=gameModel.getWidth();
             x -= 1.0 * gameModel.getUpdateGap() * gameModel.getWidth() / speed;
+        }
         int col = getClosestColumn(gameModel);
         //僵尸到达小推车
         if (col < 0) {
-            if (gameModel.hasLawnMower(row)) {
-                gameModel.getZombies(row).clear();
-                gameModel.setLawnMower(row,false);
+            if (gameModel.getLawnMower(row) != null) {
+                gameModel.getLawnMower(row).setState(LawnMower.State.ON);
+                gameModel.getZombies(row).remove(index);
                 return true;
+            } else {
+                gameModel.setState(GameModel.State.LOSE);
+                return false;
             }
-            gameModel.setState(GameModel.State.LOSE);
-            return false;
         }
         //根据僵尸状态、前方是否有植物进行数据、状态更新
         Plant plant = gameModel.getPlant(row, col);
         if (state == Zombie.State.WALKING && plant != null
-                && Math.abs(x - (col + 0.5) * gameModel.getBlockWidth()) < 10)
+                && Math.abs(x - (col + 0.5) * gameModel.getBlockWidth()) < 20)
             setState(Zombie.State.EATING);
         else if (state == Zombie.State.EATING) {
             if (plant == null)
@@ -55,8 +62,8 @@ public abstract class Zombie {
         return false;
     }
 
-    public boolean isAlive() {
-        return health > 0;
+    public boolean isDead() {
+        return health <= 0;
     }
 
     public void takeDamage(int damage) {
