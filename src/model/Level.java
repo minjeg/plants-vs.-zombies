@@ -1,39 +1,60 @@
 package model;
 
 import model.zombie.BasicZombie;
-import model.zombie.Zombie;
 
-import java.io.*;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
+import java.io.Serializable;
+import java.util.*;
 
 public class Level implements Serializable {
-    private final int rows, cols;
+    private final int rows = 5, cols = 9;
     private final int initialSun;
-    private transient int timer = 0;
-    //<毫秒数,Pair<行号,僵尸>>
-    private final TreeMap<Long, Pair<Integer, Zombie>> levelZombies = new TreeMap<>();
+    private int currentWave = 0;
+    private final int totalWave;
+    private long time = 18000;
 
-    public Level(int rows, int cols, int initialSun) {
-        this.rows = rows;
-        this.cols = cols;
+    private final List<Double> rowWeights;
+    private final List<Integer> lastPicked;
+    private final List<Integer> secondLastPicked;
+
+    public Level(int initialSun, int totalWave) {
         this.initialSun = initialSun;
-    }
-
-    public void addZombie(long time, int row, Zombie zombie) {
-        levelZombies.put(time, new Pair<>(row, zombie));
+        this.totalWave = totalWave;
+        rowWeights = new ArrayList<>(rows);
+        lastPicked = new ArrayList<>(rows);
+        secondLastPicked = new ArrayList<>(rows);
+        for (int row = 0; row < rows; ++row) {
+            rowWeights.add(0.2);
+            lastPicked.add(0);
+            secondLastPicked.add(0);
+        }
     }
 
     public void update(GameModel gameModel) {
-        timer += gameModel.getUpdateGap();
-        Iterator<Map.Entry<Long, Pair<Integer, Zombie>>> iterator = levelZombies.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<Long, Pair<Integer, Zombie>> entry = iterator.next();
-            if (entry.getKey() * 1000 <= timer) {
-                gameModel.getZombies(entry.getValue().first).add(entry.getValue().second);
-                iterator.remove();
+        if (time <= 0) {
+            if (currentWave < totalWave) {
+                new Timer().schedule(new TimerTask() {
+                    private int count = 0;
+
+                    @Override
+                    public void run() {
+                        if (count < getMaxNumber()) {
+                            gameModel.addZombie(decideRow(), new BasicZombie());
+                            ++count;
+                        } else {
+                            ++currentWave;
+                            this.cancel();
+                        }
+                    }
+                }, 0, 2000);
+                time = (long) ((25 + Math.random() * 6) * 1000);
+            } else {
+                if (gameModel.hasNoZombie())
+                    gameModel.setState(GameModel.State.WIN);
             }
+        } else {
+            if (currentWave != 0 && gameModel.hasNoZombie() && time > 2000)
+                time = 2000;
+            time -= gameModel.getUpdateGap();
         }
     }
 
@@ -49,29 +70,37 @@ public class Level implements Serializable {
         return cols;
     }
 
-    //创建并保存关卡示例
-    public static void main(String[] args) throws IOException {
-        Level level = new Level(5, 9, 50);
-        level.addZombie(20, 3, new BasicZombie());
-        level.addZombie(45, 1, new BasicZombie());
-        level.addZombie(70, 2, new BasicZombie());
-        level.addZombie(95, 0, new BasicZombie());
-        level.addZombie(120, 4, new BasicZombie());
-        save(level, "level.lv");
+    /// 确定僵尸出现的行
+    private int decideRow() {
+        List<Double> pLast = new ArrayList<>(5);
+        List<Double> pSecondLast = new ArrayList<>(5);
+        List<Double> smoothWeight = new ArrayList<>(5);
+        int row;
+        for (row = 0; row < rows; ++row) {
+            pLast.add((6 * lastPicked.get(row) * rowWeights.get(row) + 6 * rowWeights.get(row) - 3) / 4);
+            pSecondLast.add((secondLastPicked.get(row) * rowWeights.get(row) + rowWeights.get(row) - 1) / 4);
+            if (row == 0)
+                smoothWeight.add(rowWeights.get(row) * Math.min(Math.max(pLast.get(row) + pSecondLast.get(row), 0.01), 100));
+            else
+                smoothWeight.add(smoothWeight.get(row - 1) + rowWeights.get(row) * Math.min(Math.max(pLast.get(row) + pSecondLast.get(row), 0.01), 100));
+        }
+        for (row = 0; row < rows; ++row) {
+            secondLastPicked.set(row, secondLastPicked.get(row) + 1);
+            lastPicked.set(row, lastPicked.get(row) + 1);
+        }
+        double rand = Math.random() * smoothWeight.getLast();
+        for (row = 0; row < rows; ++row)
+            if (rand < smoothWeight.get(row))
+                break;
+        secondLastPicked.set(row, lastPicked.get(row));
+        lastPicked.set(row, 0);
+        return row;
     }
 
-    public static void save(Level level, String name) throws IOException {
-        FileOutputStream fileOutputStream = new FileOutputStream(name);
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-        objectOutputStream.writeObject(level);
-        objectOutputStream.close();
-    }
-
-    public static Level load(String name) throws IOException, ClassNotFoundException {
-        FileInputStream fileInputStream = new FileInputStream(name);
-        ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-        Level level = (Level) objectInputStream.readObject();
-        objectInputStream.close();
-        return level;
+    private int getMaxNumber() {
+        int number = currentWave / 3 + 1;
+        if (currentWave % 10 == 9)
+            number = (int) (number * 2.5);
+        return number;
     }
 }

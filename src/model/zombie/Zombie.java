@@ -6,11 +6,11 @@ import model.plant.Plant;
 
 import java.io.Serializable;
 
-public abstract class Zombie implements Serializable{
+public abstract class Zombie implements Serializable {
     private int health;
     private double x;
-    private final int speed;
-    private final int damage;
+    private final int speed;//从右边界到左边界耗费毫秒数
+    private final int damage;//每秒伤害
     private State state = State.WALKING;
     private String currentImagePath;
 
@@ -29,8 +29,8 @@ public abstract class Zombie implements Serializable{
             return true;
         }
         if (state == State.WALKING) {
-            if(x==-100)
-                x=gameModel.getWidth();
+            if (x == -100)
+                x = gameModel.getWidth();
             x -= 1.0 * gameModel.getUpdateGap() * gameModel.getWidth() / speed;
         }
         int col = getClosestColumn(gameModel);

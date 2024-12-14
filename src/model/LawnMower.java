@@ -7,13 +7,14 @@ import java.io.Serializable;
 public class LawnMower implements Serializable {
     private double x;
     private final int speed = 2000;//从初始位置到边界耗费的毫秒数
-    private final String currentImagePath = "images/LawnMower/moving.gif";
-    State state = State.OFF;
+    private String currentImagePath;
+    State state;
 
     public enum State {ON, OFF}
 
     public LawnMower(GameModel gameModel) {
         this.x = (double) -gameModel.getWidth() / 15;
+        setState(State.OFF);
     }
 
     public void update(GameModel gameModel, int row) {
@@ -39,5 +40,9 @@ public class LawnMower implements Serializable {
 
     public void setState(State state) {
         this.state = state;
+        if (state == State.OFF)
+            currentImagePath = "images/LawnMower/idle.png";
+        else if (state == State.ON)
+            currentImagePath = "images/LawnMower/moving.gif";
     }
 }

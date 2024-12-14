@@ -10,7 +10,7 @@ public abstract class Plant implements Serializable {
     private State state = State.IDLE;
     private String currentImagePath;
 
-    public enum State {IDLE, SHOOTING}
+    public enum State {IDLE, SHOOTING,UNDER,ARMED}
 
     public Plant(int health, int performGap) {
         this.health = health;
@@ -39,7 +39,7 @@ public abstract class Plant implements Serializable {
         return state;
     }
 
-    public void setState(State state) {
+    protected void setState(State state) {
         this.state = state;
     }
 

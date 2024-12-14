@@ -5,12 +5,8 @@ import model.LawnMower;
 import model.Level;
 import model.Sun;
 import model.bullet.Bullet;
-import model.plant.Peashooter;
 import model.plant.Plant;
-import model.plant.Sunflower;
-import model.plant.WallNut;
 import model.seed.WallNutSeed;
-import model.zombie.BasicZombie;
 import model.zombie.Zombie;
 import model.seed.PeashooterSeed;
 import model.seed.PlantSeed;
@@ -44,43 +40,30 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
 
         gameModel = new GameModel(720, 500, 30, level);
 
-        gameModel.addSeed(new PeashooterSeed());
-        gameModel.addSeed(new SunflowerSeed());
-        gameModel.addSeed(new WallNutSeed());
-//        gameModel.addSeed(new PeashooterSeed());
-//        gameModel.addSeed(new SunflowerSeed());
-//        gameModel.addSeed(new WallNutSeed());
-
-//        for (int row = 0; row < gameModel.getRows(); ++row) {
-//            gameModel.setPlant(row, 0, new Sunflower());
-//            gameModel.setPlant(row, 4, new Peashooter());
-//            gameModel.setPlant(row, 5, new WallNut());
-//        }
+        synchronized (gameModel) {
+            gameModel.addSeed(new PeashooterSeed());
+            gameModel.addSeed(new SunflowerSeed());
+            gameModel.addSeed(new WallNutSeed());
+        }
 
         java.util.Timer timer = new Timer();
-
-//        timer.schedule(new TimerTask() {
-//            private int row = 0;
-//
-//            @Override
-//            public void run() {
-//                gameModel.addZombie(row, new BasicZombie(gameModel));
-//                row = (row + 1) % gameModel.getRows();
-//            }
-//        }, 0, 2000);
-
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if (gameModel.getState() == GameModel.State.RUNNING)
-                    repaint();
-                else if (gameModel.getState() == GameModel.State.WIN) {
+//                long t = System.nanoTime();
+                if (gameModel.getState() == GameModel.State.RUNNING) {
+                    synchronized (gameModel) {
+                        repaint();
+                    }
+                } else if (gameModel.getState() == GameModel.State.WIN) {
                     showMessageDialog(MainPanel.this, "You win!");
                     this.cancel();
                 } else if (gameModel.getState() == GameModel.State.LOSE) {
                     showMessageDialog(MainPanel.this, "You lose!");
                     this.cancel();
                 }
+//                t = System.nanoTime() - t;
+//                System.out.println("view:" + t + "ns");
             }
         }, 0, 30);
     }

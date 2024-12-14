@@ -7,8 +7,8 @@ public class Sunflower extends Plant {
     private int timer;
 
     public Sunflower() {
-        super(300, 25000);
-        timer = 15000;
+        super(300, 24000);
+        timer = (int) (3000 + Math.random() * 9500);
         setState(State.IDLE);
     }
 
@@ -26,7 +26,7 @@ public class Sunflower extends Plant {
     }
 
     @Override
-    public void setState(State state) {
+    protected void setState(State state) {
         super.setState(state);
         setCurrentImagePath("images/Plant/Sunflower/idle.gif");
     }

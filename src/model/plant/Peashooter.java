@@ -33,7 +33,7 @@ public class Peashooter extends Plant {
     }
 
     @Override
-    public void setState(State state) {
+    protected void setState(State state) {
         super.setState(state);
         if (state == State.IDLE)
             setCurrentImagePath("images/Plant/Peashooter/idle.gif");

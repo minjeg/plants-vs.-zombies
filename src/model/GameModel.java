@@ -20,15 +20,15 @@ public class GameModel implements Serializable {
 
     private final Level level;
     private int sun;
+    private int fallenSunNumber = 0;
     private final int rows, cols;
     private int width, height;
     private int blockWidth, blockHeight;
+    private final int updateGap;
+    private State state = State.RUNNING;
 
     private boolean grabShovel = false;
     private PlantSeed seedInHand = null;
-
-    private final int updateGap;
-    private State state = State.RUNNING;
 
     public enum State {PAUSED, RUNNING, WIN, LOSE}
 
@@ -53,18 +53,34 @@ public class GameModel implements Serializable {
         }
         Timer timer = new Timer();
 
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                suns.add(new Sun(GameModel.this));
+        //阳光自然出现线程
+        new Thread(() -> {
+            while (true) {
+                if (state == State.RUNNING) {
+                    long gap = (long) (Math.min(100L * fallenSunNumber + 4250, 9500) + Math.random() * 2740);
+                    System.out.println("Sun" + (++fallenSunNumber) + " wait " + gap + "ms");
+                    try {
+                        Thread.sleep(gap);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    addSun(new Sun(GameModel.this));
+                } else if (state == State.WIN || state == State.LOSE) {
+                    break;
+                }
             }
-        }, 5000, 10000);
+        }).start();
 
-        timer.schedule(new TimerTask() {
+        timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
+//                long t = System.nanoTime();
                 if (state == State.RUNNING)
                     update();
+                else if (state == State.WIN || state == State.LOSE)
+                    this.cancel();
+//                t = System.nanoTime() - t;
+//                System.out.println("model:" + t + "ns");
             }
         }, 0, updateGap);
     }
@@ -136,9 +152,7 @@ public class GameModel implements Serializable {
         });
         lawnMowerThread.start();
         //关卡更新
-        Thread levelThread = new Thread(() -> {
-            level.update(this);
-        });
+        Thread levelThread = new Thread(() -> level.update(this));
         levelThread.start();
         //僵尸更新
         for (int row = 0; row < rows; ++row) {
@@ -210,6 +224,17 @@ public class GameModel implements Serializable {
 
     public void addZombie(int row, Zombie zombie) {
         zombies.get(row).add(zombie);
+    }
+
+    public boolean hasNoZombie() {
+        boolean result = true;
+        for (int row = 0; row < rows; ++row) {
+            if (!getZombies(row).isEmpty()) {
+                result = false;
+                break;
+            }
+        }
+        return result;
     }
 
     public List<Bullet> getBullets(int row) {
