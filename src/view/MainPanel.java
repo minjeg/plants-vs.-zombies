@@ -5,12 +5,8 @@ import model.LawnMower;
 import model.Level;
 import model.Sun;
 import model.bullet.Bullet;
-import model.plant.Peashooter;
 import model.plant.Plant;
-import model.plant.Sunflower;
-import model.plant.WallNut;
 import model.seed.*;
-import model.zombie.BasicZombie;
 import model.zombie.Zombie;
 
 import javax.swing.*;
@@ -46,31 +42,14 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
 //        this.add(pauseMenu);
 
 
-        gameModel.addSeed(new PeashooterSeed());
-        gameModel.addSeed(new SunflowerSeed());
-        gameModel.addSeed(new WallNutSeed());
-        gameModel.addSeed(new PotatoMineSeed());
-//        gameModel.addSeed(new PeashooterSeed());
-//        gameModel.addSeed(new SunflowerSeed());
-//        gameModel.addSeed(new WallNutSeed());
-
-//        for (int row = 0; row < gameModel.getRows(); ++row) {
-//            gameModel.setPlant(row, 0, new Sunflower());
-//            gameModel.setPlant(row, 4, new Peashooter());
-//            gameModel.setPlant(row, 5, new WallNut());
-//        }
+        synchronized (gameModel) {
+            gameModel.addSeed(new PeashooterSeed());
+            gameModel.addSeed(new SunflowerSeed());
+            gameModel.addSeed(new WallNutSeed());
+            gameModel.addSeed(new PotatoMineSeed());
+        }
 
         java.util.Timer timer = new Timer();
-
-//        timer.schedule(new TimerTask() {
-//            private int row = 0;
-//
-//            @Override
-//            public void run() {
-//                gameModel.addZombie(row, new BasicZombie(gameModel));
-//                row = (row + 1) % gameModel.getRows();
-//            }
-//        }, 0, 2000);
 
         timer.schedule(new TimerTask() {
             @Override
@@ -316,9 +295,9 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        JButton source = (JButton)e.getSource();
-        if(source instanceof PauseButton) {
-            if(gameModel.getState() == GameModel.State.RUNNING) {
+        JButton source = (JButton) e.getSource();
+        if (source instanceof PauseButton) {
+            if (gameModel.getState() == GameModel.State.RUNNING) {
                 gameModel.pauseGame();
             } else {
                 gameModel.continueGame();

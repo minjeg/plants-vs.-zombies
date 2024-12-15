@@ -1,4 +1,3 @@
-import model.zombie.BasicZombie;
 import view.PlayFrame;
 
 import java.awt.*;

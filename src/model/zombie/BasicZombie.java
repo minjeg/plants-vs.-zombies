@@ -4,7 +4,7 @@ public class BasicZombie extends Zombie {
     private static int count = 0;
 
     public BasicZombie() {
-        super(270, -100, 50000, 100);
+        super(270, defaultX, 50000, 100);
         setState(State.WALKING);
     }
 
@@ -17,7 +17,7 @@ public class BasicZombie extends Zombie {
                 setCurrentImagePath("images/Zombie/BasicZombie/walk.gif");
             else
                 setCurrentImagePath("images/Zombie/BasicZombie/walk2.gif");
-        } else
+        } else if (state == State.EATING)
             setCurrentImagePath("images/Zombie/BasicZombie/eat.gif");
     }
 }

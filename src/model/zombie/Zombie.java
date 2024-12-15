@@ -9,6 +9,7 @@ import java.io.Serializable;
 public abstract class Zombie implements Serializable {
     private int health;
     private double x;
+    public static final int defaultX = -100;
     private final int speed;//从右边界到左边界耗费毫秒数
     private final int damage;//每秒伤害
     private State state = State.WALKING;
@@ -29,7 +30,7 @@ public abstract class Zombie implements Serializable {
             return true;
         }
         if (state == State.WALKING) {
-            if (x == -100)
+            if (x == defaultX)
                 x = gameModel.getWidth();
             x -= 1.0 * gameModel.getUpdateGap() * gameModel.getWidth() / speed;
         }
@@ -47,16 +48,16 @@ public abstract class Zombie implements Serializable {
         }
         //根据僵尸状态、前方是否有植物进行数据、状态更新
         Plant plant = gameModel.getPlant(row, col);
-        if (state == Zombie.State.WALKING && plant != null
+        if (state == State.WALKING && plant != null
                 && Math.abs(x - (col + 0.5) * gameModel.getBlockWidth()) < 20)
-            setState(Zombie.State.EATING);
-        else if (state == Zombie.State.EATING) {
+            setState(State.EATING);
+        else if (state == State.EATING) {
             if (plant == null)
-                setState(Zombie.State.WALKING);
+                setState(State.WALKING);
             else {
                 plant.takeDamage(gameModel.getUpdateGap() * getDamage() / 1000);
                 if (plant.isDead())
-                    setState(Zombie.State.WALKING);
+                    setState(State.WALKING);
             }
         }
         return false;
@@ -64,6 +65,10 @@ public abstract class Zombie implements Serializable {
 
     public boolean isDead() {
         return health <= 0;
+    }
+
+    protected int getHealth() {
+        return health;
     }
 
     public void takeDamage(int damage) {
