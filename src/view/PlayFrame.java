@@ -17,6 +17,6 @@ public class PlayFrame extends JFrame {
         this.setLayout(null);
         this.setResizable(false);
 
-        this.add(new MainPanel(new Level(50, 10)));
+        this.add(new MainPanel(new Level(50, 20)));
     }
 }

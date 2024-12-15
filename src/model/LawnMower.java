@@ -6,14 +6,15 @@ import java.io.Serializable;
 
 public class LawnMower implements Serializable {
     private double x;
+    private static final int defaultX = -60;
     private final int speed = 2000;//从初始位置到边界耗费的毫秒数
     private String currentImagePath;
     State state;
 
     public enum State {ON, OFF}
 
-    public LawnMower(GameModel gameModel) {
-        this.x = (double) -gameModel.getWidth() / 15;
+    public LawnMower() {
+        this.x = defaultX;
         setState(State.OFF);
     }
 

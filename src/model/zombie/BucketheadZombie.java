@@ -14,8 +14,8 @@ public class BucketheadZombie extends Zombie {
     @Override
     public boolean update(GameModel gameModel, int row, int index) {
         if (withBucket && getHealth() <= 270) {
-            setState(State.WALKING);
             withBucket = false;
+            setState(State.WALKING);
         }
         return super.update(gameModel, row, index);
     }

@@ -14,8 +14,8 @@ public class ConeheadZombie extends Zombie {
     @Override
     public boolean update(GameModel gameModel, int row, int index) {
         if (withCone && getHealth() <= 270) {
-            setState(State.WALKING);
             withCone = false;
+            setState(State.WALKING);
         }
         return super.update(gameModel, row, index);
     }

@@ -22,11 +22,11 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
     private Image imageFollowMouse = null;
     private Point mousePos = new Point(410, 5);
     private final GameModel gameModel;
-    private int deltaX = 60, deltaY = 60;
+    private final int deltaX = 60, deltaY = 60;
 
 //    private PauseMenuPanel pauseMenu;
 
-    private static Font STANDARD = new Font("Standard", Font.PLAIN, 15);
+    private static final Font STANDARD = new Font("Standard", Font.PLAIN, 15);
 
     public MainPanel(Level level) {
         super();
@@ -36,12 +36,11 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         this.addMouseMotionListener(this);
         this.add(new PauseButton(this));
 
-        gameModel = new GameModel(720, 500, 30, level);
 //        pauseMenu = new PauseMenuPanel(gameModel);
 //        pauseMenu.setVisible(false);
 //        this.add(pauseMenu);
 
-
+        gameModel = new GameModel(720, 500, 30, level);
         synchronized (gameModel) {
             gameModel.addSeed(new PeashooterSeed());
             gameModel.addSeed(new SunflowerSeed());
@@ -54,9 +53,12 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if (gameModel.getState() == GameModel.State.RUNNING)
+                if (gameModel.getState() == GameModel.State.RUNNING) {
+                    synchronized (gameModel) {
+                        repaint();
+                    }
+                } else if (gameModel.getState() == GameModel.State.WIN) {
                     repaint();
-                else if (gameModel.getState() == GameModel.State.WIN) {
                     showMessageDialog(MainPanel.this, "You win!");
                     this.cancel();
                 } else if (gameModel.getState() == GameModel.State.LOSE) {
@@ -64,7 +66,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                     this.cancel();
                 }
             }
-        }, 0, 30);
+        }, 0, gameModel.getUpdateGap());
     }
 
     @Override
@@ -189,13 +191,6 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
             }
         }
 
-        //绘制阳光
-        for (Sun sun : gameModel.getSuns()) {
-            Image image = new ImageIcon(sun.getCurrentImagePath()).getImage();
-            g.drawImage(image, (int) (deltaX / 2.0 + sun.getX() - image.getWidth(null) / 2.0),
-                    (int) (deltaY + deltaY + sun.getY() - image.getHeight(null) / 2.0), null);
-        }
-
         //绘制割草机
         for (int row = 0; row < gameModel.getRows(); ++row) {
             LawnMower lawnMower = gameModel.getLawnMower(row);
@@ -204,6 +199,13 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
             Image image = new ImageIcon(lawnMower.getCurrentImagePath()).getImage();
             g.drawImage(image, (int) (deltaX + lawnMower.getX() - image.getWidth(null) / 2.0),
                     (int) (deltaY + (row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
+        }
+
+        //绘制阳光
+        for (Sun sun : gameModel.getSuns()) {
+            Image image = new ImageIcon(sun.getCurrentImagePath()).getImage();
+            g.drawImage(image, (int) (deltaX / 2.0 + sun.getX() - image.getWidth(null) / 2.0),
+                    (int) (deltaY + deltaY + sun.getY() - image.getHeight(null) / 2.0), null);
         }
 
         //绘制玩家持有物

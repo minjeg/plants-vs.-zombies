@@ -62,6 +62,7 @@ public class Level implements Serializable {
     public void update(GameModel gameModel) {
         if (time <= 0) {
             if (currentWave < totalWave) {
+                System.out.println("第" + (currentWave + 1) + "波");
                 if (currentWave % 10 == 9 || totalWave < 10 && currentWave == totalWave - 1) {
                     System.out.println("一大波僵尸正在接近！");
                     if (currentWave == totalWave - 1)
@@ -83,7 +84,7 @@ public class Level implements Serializable {
                             this.cancel();
                         }
                     }
-                }, 0, 2000);
+                }, 0, 1000);
                 time = (long) ((25 + Math.random() * 6) * 1000);
             } else {
                 if (gameModel.hasNoZombie())
@@ -159,6 +160,7 @@ public class Level implements Serializable {
         return allowedZombieTypes.get(i).getZombie();
     }
 
+    /// 获取波次级别上限
     private int getLevelUpperLimit() {
         int number = currentWave / 3 + 1;
         if (currentWave % 10 == 9 || totalWave < 10 && currentWave == totalWave - 1)

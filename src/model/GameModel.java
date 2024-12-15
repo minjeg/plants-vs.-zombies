@@ -22,8 +22,8 @@ public class GameModel implements Serializable {
     private int sun;
     private int fallenSunNumber = 0;
     private final int rows, cols;
-    private int width, height;
-    private int blockWidth, blockHeight;
+    private final int width, height;
+    private final int blockWidth, blockHeight;
     private final int updateGap;
     private State state = State.RUNNING;
 
@@ -47,43 +47,40 @@ public class GameModel implements Serializable {
             zombies.add(new ArrayList<>());
             plants.add(new ArrayList<>());
             bullets.add(new ArrayList<>());
-            lawnMowers.add(new LawnMower(this));
+            lawnMowers.add(new LawnMower());
             for (int j = 0; j < cols; ++j)
                 plants.get(i).add(null);
         }
         Timer timer = new Timer();
 
-        //阳光自然出现线程
-        new Thread(() -> {
-            while (true) {
+        //阳光自然出现
+        timer.scheduleAtFixedRate(new TimerTask() {
+            private long timer = (long) (4250 + Math.random() * 2740);
+
+            @Override
+            public void run() {
                 if (state == State.RUNNING) {
-                    long gap = (long) (Math.min(100L * fallenSunNumber + 4250, 9500) + Math.random() * 2740);
-//                    System.out.println("Sun" + (++fallenSunNumber) + " wait " + gap + "ms");
-                    try {
-                        Thread.sleep(gap);
-                    } catch (InterruptedException e) {
-                        System.out.println(e);
-                        throw new RuntimeException(e);
+                    timer -= updateGap;
+                    if (timer <= 0) {
+                        addSun(new Sun(GameModel.this));
+                        ++fallenSunNumber;
+                        timer = (long) (Math.min(100L * fallenSunNumber + 4250, 9500) + Math.random() * 2740);
                     }
-                    addSun(new Sun(GameModel.this));
                 } else if (state == State.WIN || state == State.LOSE) {
-                    break;
+                    this.cancel();
                 }
             }
-        }).start();
+        }, updateGap, updateGap);
 
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-//                long t = System.nanoTime();
                 if (state == State.RUNNING)
                     update();
                 else if (state == State.WIN || state == State.LOSE)
                     this.cancel();
-//                t = System.nanoTime() - t;
-//                System.out.println("model:" + t + "ns");
             }
-        }, 0, updateGap);
+        }, updateGap, updateGap);
     }
 
     public static void save(GameModel gameModel, String name) throws IOException {
@@ -278,16 +275,8 @@ public class GameModel implements Serializable {
         return width;
     }
 
-    public void setWidth(int width) {
-        this.width = width;
-    }
-
     public int getHeight() {
         return height;
-    }
-
-    public void setHeight(int height) {
-        this.height = height;
     }
 
     public int getRows() {

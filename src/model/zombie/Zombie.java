@@ -9,7 +9,7 @@ import java.io.Serializable;
 public abstract class Zombie implements Serializable {
     private int health;
     private double x;
-    public static final int defaultX = -100;
+    public static final int defaultX = -1000;
     private final int speed;//从右边界到左边界耗费毫秒数
     private final int damage;//每秒伤害
     private State state = State.WALKING;
