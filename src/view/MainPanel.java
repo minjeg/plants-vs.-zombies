@@ -5,29 +5,30 @@ import model.LawnMower;
 import model.Level;
 import model.Sun;
 import model.bullet.Bullet;
+import model.plant.Peashooter;
 import model.plant.Plant;
-import model.seed.WallNutSeed;
+import model.plant.Sunflower;
+import model.plant.WallNut;
+import model.seed.*;
+import model.zombie.BasicZombie;
 import model.zombie.Zombie;
-import model.seed.PeashooterSeed;
-import model.seed.PlantSeed;
-import model.seed.SunflowerSeed;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import static javax.swing.JOptionPane.showMessageDialog;
 
-public class MainPanel extends JPanel implements MouseListener, MouseMotionListener {
+public class MainPanel extends JPanel implements MouseListener, MouseMotionListener, ActionListener {
     private Image imageFollowMouse = null;
     private Point mousePos = new Point(410, 5);
     private final GameModel gameModel;
     private int deltaX = 60, deltaY = 60;
+
+//    private PauseMenuPanel pauseMenu;
 
     private static Font STANDARD = new Font("Standard", Font.PLAIN, 15);
 
@@ -37,33 +38,52 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         this.setLayout(null);
         this.addMouseListener(this);
         this.addMouseMotionListener(this);
+        this.add(new PauseButton(this));
 
         gameModel = new GameModel(720, 500, 30, level);
+//        pauseMenu = new PauseMenuPanel(gameModel);
+//        pauseMenu.setVisible(false);
+//        this.add(pauseMenu);
 
-        synchronized (gameModel) {
-            gameModel.addSeed(new PeashooterSeed());
-            gameModel.addSeed(new SunflowerSeed());
-            gameModel.addSeed(new WallNutSeed());
-        }
+
+        gameModel.addSeed(new PeashooterSeed());
+        gameModel.addSeed(new SunflowerSeed());
+        gameModel.addSeed(new WallNutSeed());
+        gameModel.addSeed(new PotatoMineSeed());
+//        gameModel.addSeed(new PeashooterSeed());
+//        gameModel.addSeed(new SunflowerSeed());
+//        gameModel.addSeed(new WallNutSeed());
+
+//        for (int row = 0; row < gameModel.getRows(); ++row) {
+//            gameModel.setPlant(row, 0, new Sunflower());
+//            gameModel.setPlant(row, 4, new Peashooter());
+//            gameModel.setPlant(row, 5, new WallNut());
+//        }
 
         java.util.Timer timer = new Timer();
+
+//        timer.schedule(new TimerTask() {
+//            private int row = 0;
+//
+//            @Override
+//            public void run() {
+//                gameModel.addZombie(row, new BasicZombie(gameModel));
+//                row = (row + 1) % gameModel.getRows();
+//            }
+//        }, 0, 2000);
+
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-//                long t = System.nanoTime();
-                if (gameModel.getState() == GameModel.State.RUNNING) {
-                    synchronized (gameModel) {
-                        repaint();
-                    }
-                } else if (gameModel.getState() == GameModel.State.WIN) {
+                if (gameModel.getState() == GameModel.State.RUNNING)
+                    repaint();
+                else if (gameModel.getState() == GameModel.State.WIN) {
                     showMessageDialog(MainPanel.this, "You win!");
                     this.cancel();
                 } else if (gameModel.getState() == GameModel.State.LOSE) {
                     showMessageDialog(MainPanel.this, "You lose!");
                     this.cancel();
                 }
-//                t = System.nanoTime() - t;
-//                System.out.println("view:" + t + "ns");
             }
         }, 0, 30);
     }
@@ -292,5 +312,17 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
     @Override
     public void mouseMoved(MouseEvent e) {
         mousePos = e.getPoint();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        JButton source = (JButton)e.getSource();
+        if(source instanceof PauseButton) {
+            if(gameModel.getState() == GameModel.State.RUNNING) {
+                gameModel.pauseGame();
+            } else {
+                gameModel.continueGame();
+            }
+        }
     }
 }

@@ -58,10 +58,11 @@ public class GameModel implements Serializable {
             while (true) {
                 if (state == State.RUNNING) {
                     long gap = (long) (Math.min(100L * fallenSunNumber + 4250, 9500) + Math.random() * 2740);
-                    System.out.println("Sun" + (++fallenSunNumber) + " wait " + gap + "ms");
+//                    System.out.println("Sun" + (++fallenSunNumber) + " wait " + gap + "ms");
                     try {
                         Thread.sleep(gap);
                     } catch (InterruptedException e) {
+                        System.out.println(e);
                         throw new RuntimeException(e);
                     }
                     addSun(new Sun(GameModel.this));
