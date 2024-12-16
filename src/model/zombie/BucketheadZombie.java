@@ -7,7 +7,7 @@ public class BucketheadZombie extends Zombie {
     private boolean withBucket = true;
 
     public BucketheadZombie() {
-        super(470, defaultX, 50000, 100);
+        super(1370, defaultX, 50000, 100);
         setState(State.WALKING);
     }
 

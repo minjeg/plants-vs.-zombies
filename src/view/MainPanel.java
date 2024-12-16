@@ -24,7 +24,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
     private final GameModel gameModel;
     private final int deltaX = 60, deltaY = 60;
 
-//    private PauseMenuPanel pauseMenu;
+    private PauseMenuPanel pauseMenu;
 
     private static final Font STANDARD = new Font("Standard", Font.PLAIN, 15);
 
@@ -36,9 +36,6 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         this.addMouseMotionListener(this);
         this.add(new PauseButton(this));
 
-//        pauseMenu = new PauseMenuPanel(gameModel);
-//        pauseMenu.setVisible(false);
-//        this.add(pauseMenu);
 
         gameModel = new GameModel(720, 500, 30, level);
         synchronized (gameModel) {
@@ -47,6 +44,10 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
             gameModel.addSeed(new WallNutSeed());
             gameModel.addSeed(new PotatoMineSeed());
         }
+        pauseMenu = new PauseMenuPanel(gameModel);
+        pauseMenu.setVisible(false);
+        this.add(pauseMenu);
+
 
         java.util.Timer timer = new Timer();
 
@@ -224,6 +225,9 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
     public void mousePressed(MouseEvent e) {
         Point p = e.getPoint();
         mousePos = e.getPoint();
+        if(gameModel.getState() == GameModel.State.LOSE ||
+                gameModel.getState() == GameModel.State.PAUSED)
+            return;
         if (!gameModel.isGrabShovel() && gameModel.getSeedInHand() == null) {
             List<Sun> sunList = gameModel.getSuns();
             for (int i = 0; i < sunList.size(); i++) {
@@ -301,8 +305,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         if (source instanceof PauseButton) {
             if (gameModel.getState() == GameModel.State.RUNNING) {
                 gameModel.pauseGame();
-            } else {
-                gameModel.continueGame();
+                pauseMenu.setVisible(true);
             }
         }
     }
