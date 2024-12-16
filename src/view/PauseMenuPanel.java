@@ -15,6 +15,8 @@ public class PauseMenuPanel extends JPanel implements ActionListener {
         this.setOpaque(false);
         this.setBounds(120, -10, 490, 580);
         this.setLayout(null);
+        this.add(new RestartButton(this));
+        this.add(new ReturnToMenuButton(this));
         this.add(new BackToGameButton(this));
     }
 
