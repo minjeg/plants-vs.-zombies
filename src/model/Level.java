@@ -160,6 +160,10 @@ public class Level implements Serializable {
         return allowedZombieTypes.get(i).getZombie();
     }
 
+    public int getTotalWave() {
+        return totalWave;
+    }
+
     /// 获取波次级别上限
     private int getLevelUpperLimit() {
         int number = currentWave / 3 + 1;

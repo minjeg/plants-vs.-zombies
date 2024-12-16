@@ -21,10 +21,11 @@ import static javax.swing.JOptionPane.showMessageDialog;
 public class MainPanel extends JPanel implements MouseListener, MouseMotionListener, ActionListener {
     private Image imageFollowMouse = null;
     private Point mousePos = new Point(410, 5);
-    private final GameModel gameModel;
+    private GameModel gameModel;
     private final int deltaX = 60, deltaY = 60;
 
     private PauseMenuPanel pauseMenu;
+    private Level level;
 
     private static final Font STANDARD = new Font("Standard", Font.PLAIN, 15);
 
@@ -37,6 +38,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         this.add(new PauseButton(this));
 
 
+        this.level = level;
         gameModel = new GameModel(720, 500, 30, level);
         synchronized (gameModel) {
             gameModel.addSeed(new PeashooterSeed());
@@ -44,7 +46,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
             gameModel.addSeed(new WallNutSeed());
             gameModel.addSeed(new PotatoMineSeed());
         }
-        pauseMenu = new PauseMenuPanel(gameModel);
+        pauseMenu = new PauseMenuPanel(this);
         pauseMenu.setVisible(false);
         this.add(pauseMenu);
 
@@ -307,6 +309,21 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                 gameModel.pauseGame();
                 pauseMenu.setVisible(true);
             }
+        } else if(source instanceof BackToGameButton) {
+            if(gameModel.getState() == GameModel.State.PAUSED) {
+                gameModel.continueGame();
+                pauseMenu.setVisible(false);
+            }
+        } else if(source instanceof RestartButton) {
+            gameModel = new GameModel(720, 500, 30,
+                    new Level(level.getInitialSun(), level.getTotalWave()));
+            synchronized (gameModel) {
+                gameModel.addSeed(new PeashooterSeed());
+                gameModel.addSeed(new SunflowerSeed());
+                gameModel.addSeed(new WallNutSeed());
+                gameModel.addSeed(new PotatoMineSeed());
+            }
+            pauseMenu.setVisible(false);
         }
     }
 }

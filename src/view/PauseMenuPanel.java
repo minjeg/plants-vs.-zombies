@@ -7,17 +7,17 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class PauseMenuPanel extends JPanel implements ActionListener {
-    private GameModel model;
+public class PauseMenuPanel extends JPanel {
+    private MainPanel mainPanel;
 
-    public PauseMenuPanel(GameModel model) {
-        this.model = model;
+    public PauseMenuPanel(MainPanel mainPanel) {
+        this.mainPanel = mainPanel;
         this.setOpaque(false);
         this.setBounds(120, -10, 490, 580);
         this.setLayout(null);
-        this.add(new RestartButton(this));
-        this.add(new ReturnToMenuButton(this));
-        this.add(new BackToGameButton(this));
+        this.add(new RestartButton(mainPanel));
+        this.add(new ReturnToMenuButton(mainPanel));
+        this.add(new BackToGameButton(mainPanel));
     }
 
     @Override
@@ -25,14 +25,5 @@ public class PauseMenuPanel extends JPanel implements ActionListener {
         super.paintComponent(g);
         g.drawImage(new ImageIcon("images/Panels/PausePanel.png").getImage(),
                 80, 80, null);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        JButton source = (JButton)e.getSource();
-        if(source instanceof BackToGameButton) {
-            model.continueGame();
-            this.setVisible(false);
-        }
     }
 }
