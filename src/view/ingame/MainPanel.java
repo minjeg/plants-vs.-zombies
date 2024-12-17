@@ -9,9 +9,14 @@ import model.plant.Plant;
 import model.seed.*;
 import model.zombie.Zombie;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.LineUnavailableException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -26,6 +31,8 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
 
     private PauseMenuPanel pauseMenu;
     private Level level;
+
+    private AudioPlayer player = null;
 
     private static final Font STANDARD = new Font("Standard", Font.PLAIN, 15);
 
@@ -51,6 +58,21 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         pauseMenu = new PauseMenuPanel(this);
         pauseMenu.setVisible(false);
         this.add(pauseMenu);
+
+        try {
+            AudioInputStream ais = AudioSystem.getAudioInputStream(new File("sounds/bgm/GrassWalk.wav"));
+            player = new AudioPlayer(ais, true);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        if(player != null) {
+            try {
+                player.start();
+            } catch (IOException | LineUnavailableException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         java.util.Timer timer = new Timer();
 
@@ -205,23 +227,25 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         }
 
         // 绘制关卡进度条
-        double rate = (double)level.getCurrentWave() / level.getTotalWave();
-        g.drawImage(new ImageIcon("images/Panels/FlagMeter_Empty.png").getImage(),
-                600, 575, 758, 602, 0, 0, 158, 27, null);
-        g.drawImage(new ImageIcon("images/Panels/FlagMeter.png").getImage(),
-                600 + (int)(158 * (1 - rate)), 575, 758, 602,
-                (int)(158 * (1 - rate)), 0, 158, 27, null);
-        for(double i = 0; i <= level.getTotalWave(); i += 10) {
-            if(i == 0) continue;
-            g.drawImage(new ImageIcon("images/Panels/FlagMeterParts_FlagPole.png").getImage(),
-                    600 + (int)(158 * (1 - i / level.getTotalWave())), 575, null);
-            g.drawImage(new ImageIcon("images/Panels/FlagMeterParts_Flag.png").getImage(),
-                    600 + (int)(158 * (1 - i / level.getTotalWave())),
-                    (level.getCurrentWave() >= i ? 566 : 575), null);
+        if(level.getCurrentWave() != 0) {
+            double rate = (double) level.getCurrentWave() / level.getTotalWave();
+            g.drawImage(new ImageIcon("images/Panels/FlagMeter_Empty.png").getImage(),
+                    600, 575, 758, 602, 0, 0, 158, 27, null);
+            g.drawImage(new ImageIcon("images/Panels/FlagMeter.png").getImage(),
+                    600 + (int) (158 * (1 - rate)), 575, 758, 602,
+                    (int) (158 * (1 - rate)), 0, 158, 27, null);
+            for (double i = 0; i <= level.getTotalWave(); i += 10) {
+                if (i == 0) continue;
+                g.drawImage(new ImageIcon("images/Panels/FlagMeterParts_FlagPole.png").getImage(),
+                        607 + (int) (145 * (1 - i / level.getTotalWave())), 575, null);
+                g.drawImage(new ImageIcon("images/Panels/FlagMeterParts_Flag.png").getImage(),
+                        607 + (int) (145 * (1 - i / level.getTotalWave())),
+                        (level.getCurrentWave() >= i ? 566 : 575), null);
+            }
+            g.drawImage(new ImageIcon("images/Panels/FlagMeterParts_Head.png").getImage(),
+                    600 + (int) (145 * (1 - (double) level.getCurrentWave() / level.getTotalWave())),
+                    575, null);
         }
-        g.drawImage(new ImageIcon("images/Panels/FlagMeterParts_Head.png").getImage(),
-                575 + (int)(158 * (1 - (double)level.getCurrentWave() / level.getTotalWave())),
-                575, null);
 
 
         //绘制阳光
@@ -328,11 +352,17 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
             if (gameModel.getState() == GameModel.State.RUNNING) {
                 gameModel.pauseGame();
                 pauseMenu.setVisible(true);
+                player.stop();
             }
         } else if(source instanceof BackToGameButton) {
             if(gameModel.getState() == GameModel.State.PAUSED) {
                 gameModel.continueGame();
                 pauseMenu.setVisible(false);
+                try {
+                    player.start();
+                } catch (IOException | LineUnavailableException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         } else if(source instanceof RestartButton) {
             level = new Level(level.getInitialSun(), level.getTotalWave());
@@ -344,6 +374,11 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                 gameModel.addSeed(new PotatoMineSeed());
             }
             pauseMenu.setVisible(false);
+            try {
+                player.start(0);
+            } catch (IOException | LineUnavailableException ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
 }
