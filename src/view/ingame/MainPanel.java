@@ -1,4 +1,4 @@
-package view;
+package view.ingame;
 
 import model.GameModel;
 import model.LawnMower;
@@ -206,11 +206,22 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
 
         // 绘制关卡进度条
         double rate = (double)level.getCurrentWave() / level.getTotalWave();
-        g.drawImage(new ImageIcon("images/Panels/FlagMeter1.png").getImage(),
+        g.drawImage(new ImageIcon("images/Panels/FlagMeter_Empty.png").getImage(),
                 600, 575, 758, 602, 0, 0, 158, 27, null);
-        g.drawImage(new ImageIcon("images/Panels/FlagMeter2.png").getImage(),
+        g.drawImage(new ImageIcon("images/Panels/FlagMeter.png").getImage(),
                 600 + (int)(158 * (1 - rate)), 575, 758, 602,
                 (int)(158 * (1 - rate)), 0, 158, 27, null);
+        for(double i = 0; i <= level.getTotalWave(); i += 10) {
+            if(i == 0) continue;
+            g.drawImage(new ImageIcon("images/Panels/FlagMeterParts_FlagPole.png").getImage(),
+                    600 + (int)(158 * (1 - i / level.getTotalWave())), 575, null);
+            g.drawImage(new ImageIcon("images/Panels/FlagMeterParts_Flag.png").getImage(),
+                    600 + (int)(158 * (1 - i / level.getTotalWave())),
+                    (level.getCurrentWave() >= i ? 566 : 575), null);
+        }
+        g.drawImage(new ImageIcon("images/Panels/FlagMeterParts_Head.png").getImage(),
+                575 + (int)(158 * (1 - (double)level.getCurrentWave() / level.getTotalWave())),
+                575, null);
 
 
         //绘制阳光
@@ -324,8 +335,8 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                 pauseMenu.setVisible(false);
             }
         } else if(source instanceof RestartButton) {
-            gameModel = new GameModel(720, 500, 30,
-                    new Level(level.getInitialSun(), level.getTotalWave()));
+            level = new Level(level.getInitialSun(), level.getTotalWave());
+            gameModel = new GameModel(720, 500, 30, level);
             synchronized (gameModel) {
                 gameModel.addSeed(new PeashooterSeed());
                 gameModel.addSeed(new SunflowerSeed());

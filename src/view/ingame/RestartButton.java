@@ -1,7 +1,6 @@
-package view;
+package view.ingame;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionListener;
 
 public class RestartButton extends JButton {

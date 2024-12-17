@@ -1,6 +1,7 @@
 package view;
 
 import model.Level;
+import view.ingame.MainPanel;
 
 import javax.swing.*;
 

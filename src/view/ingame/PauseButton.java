@@ -1,4 +1,4 @@
-package view;
+package view.ingame;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;

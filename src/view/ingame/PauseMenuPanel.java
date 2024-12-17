@@ -1,17 +1,10 @@
-package view;
-
-import model.GameModel;
+package view.ingame;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class PauseMenuPanel extends JPanel {
-    private MainPanel mainPanel;
-
     public PauseMenuPanel(MainPanel mainPanel) {
-        this.mainPanel = mainPanel;
         this.setOpaque(false);
         this.setBounds(120, -10, 490, 580);
         this.setLayout(null);
