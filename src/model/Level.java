@@ -164,6 +164,10 @@ public class Level implements Serializable {
         return totalWave;
     }
 
+    public int getCurrentWave() {
+        return currentWave;
+    }
+
     /// 获取波次级别上限
     private int getLevelUpperLimit() {
         int number = currentWave / 3 + 1;

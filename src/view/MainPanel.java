@@ -40,16 +40,17 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
 
         this.level = level;
         gameModel = new GameModel(720, 500, 30, level);
+
         synchronized (gameModel) {
             gameModel.addSeed(new PeashooterSeed());
             gameModel.addSeed(new SunflowerSeed());
             gameModel.addSeed(new WallNutSeed());
             gameModel.addSeed(new PotatoMineSeed());
         }
+
         pauseMenu = new PauseMenuPanel(this);
         pauseMenu.setVisible(false);
         this.add(pauseMenu);
-
 
         java.util.Timer timer = new Timer();
 
@@ -132,7 +133,6 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
             g.drawImage(new ImageIcon("images/Shovel.png").getImage(),
                     410, 5, null);
 
-
         int blockWidth = gameModel.getBlockWidth();
         int blockHeight = gameModel.getBlockHeight();
         // 绘制植物底下的影子
@@ -203,6 +203,15 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
             g.drawImage(image, (int) (deltaX + lawnMower.getX() - image.getWidth(null) / 2.0),
                     (int) (deltaY + (row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
         }
+
+        // 绘制关卡进度条
+        double rate = (double)level.getCurrentWave() / level.getTotalWave();
+        g.drawImage(new ImageIcon("images/Panels/FlagMeter1.png").getImage(),
+                600, 575, 758, 602, 0, 0, 158, 27, null);
+        g.drawImage(new ImageIcon("images/Panels/FlagMeter2.png").getImage(),
+                600 + (int)(158 * (1 - rate)), 575, 758, 602,
+                (int)(158 * (1 - rate)), 0, 158, 27, null);
+
 
         //绘制阳光
         for (Sun sun : gameModel.getSuns()) {
