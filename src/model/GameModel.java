@@ -21,11 +21,13 @@ public class GameModel implements Serializable {
     private final Level level;
     private int sun;
     private int fallenSunNumber = 0;
+    private int totalZombieHealth;
+    private final int updateGap;
+    private State state = State.RUNNING;
+
     private final int rows, cols;
     private final int width, height;
     private final int blockWidth, blockHeight;
-    private final int updateGap;
-    private State state = State.RUNNING;
 
     private boolean grabShovel = false;
     private PlantSeed seedInHand = null;
@@ -153,6 +155,7 @@ public class GameModel implements Serializable {
         Thread levelThread = new Thread(() -> level.update(this));
         levelThread.start();
         //僵尸更新
+        totalZombieHealth = 0;
         for (int row = 0; row < rows; ++row) {
             List<Zombie> rowZombies = zombies.get(row);
             for (int index = 0; index < rowZombies.size(); ++index) {
@@ -160,6 +163,7 @@ public class GameModel implements Serializable {
                 if (zombie.update(this, row, index)) {
                     --index;
                 }
+                totalZombieHealth += zombie.getHealth();
             }
         }
         //保证数据都完成更新
@@ -224,15 +228,8 @@ public class GameModel implements Serializable {
         zombies.get(row).add(zombie);
     }
 
-    public boolean hasNoZombie() {
-        boolean result = true;
-        for (int row = 0; row < rows; ++row) {
-            if (!getZombies(row).isEmpty()) {
-                result = false;
-                break;
-            }
-        }
-        return result;
+    public int getTotalZombieHealth() {
+        return totalZombieHealth;
     }
 
     public List<Bullet> getBullets(int row) {

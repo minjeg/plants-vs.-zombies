@@ -67,7 +67,7 @@ public abstract class Zombie implements Serializable {
         return health <= 0;
     }
 
-    protected int getHealth() {
+    public int getHealth() {
         return health;
     }
 
