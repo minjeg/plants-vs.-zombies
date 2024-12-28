@@ -65,7 +65,7 @@ public class Level implements Serializable {
     }
 
     public void update(GameModel gameModel) {
-        if (currentWave != 0 && gameModel.getTotalZombieHealth() == 0) {
+        if (currentWave == totalWave - 1 && gameModel.getTotalZombieHealth() == 0) {
             gameModel.setState(GameModel.State.WIN);
             return;
         }
