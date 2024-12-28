@@ -9,6 +9,7 @@ import java.awt.*;
 import java.io.*;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class GameModel implements Serializable {
     private final List<List<Plant>> plants = new ArrayList<>();
@@ -315,5 +316,11 @@ public class GameModel implements Serializable {
 
     public void addSeed(PlantSeed seed) {
         seedBank.add(seed);
+    }
+
+    public int getNumOfZombies() {
+        int ret = 0;
+        for(var e : zombies) ret += e.size();
+        return ret;
     }
 }

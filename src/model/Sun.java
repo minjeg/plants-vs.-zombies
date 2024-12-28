@@ -1,5 +1,8 @@
 package model;
 
+import view.ingame.AudioPlayer;
+
+import java.io.File;
 import java.io.Serializable;
 
 public class Sun implements Serializable {
@@ -13,6 +16,10 @@ public class Sun implements Serializable {
     private int destination;
     private final String currentImagePath = "images/Sun.gif";
     private int timer = 0;
+
+    private AudioPlayer soundPlayer = AudioPlayer
+            .getAudioPlayer(new File("sounds/audio/points.wav"),
+                    AudioPlayer.NORMAL);
 
     public enum State {IDLE, MOVING}
 
@@ -61,5 +68,9 @@ public class Sun implements Serializable {
 
     public String getCurrentImagePath() {
         return currentImagePath;
+    }
+
+    public void playSound() {
+        soundPlayer.start();
     }
 }

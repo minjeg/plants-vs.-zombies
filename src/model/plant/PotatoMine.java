@@ -2,13 +2,21 @@ package model.plant;
 
 import model.GameModel;
 import model.zombie.Zombie;
+import view.ingame.AudioPlayer;
 
+import java.io.File;
 import java.util.List;
 
 public class PotatoMine extends Plant {
     private int timer;
 
-    public static final int RISE = 1, ARMED = 2, EXPLODE = 3;
+    private AudioPlayer riseSoundPlayer = AudioPlayer.getAudioPlayer(
+            new File("sounds/audio/dirt_rise.wav"), AudioPlayer.NORMAL);
+    private AudioPlayer explosionPlayer = AudioPlayer.getAudioPlayer(
+            new File("sounds/audio/potato_mine.wav"), AudioPlayer.NORMAL);
+
+    private boolean riseSoundEnabled = true;
+    private boolean explodeSoundEnabled = true;
 
     public PotatoMine() {
         super(300, 20000);
@@ -35,6 +43,10 @@ public class PotatoMine extends Plant {
                 setState(State.RISE);
             }
         } else if(getState() == State.RISE) {
+            if(riseSoundEnabled) {
+                riseSoundPlayer.start();
+                riseSoundEnabled = false;
+            }
             timer -= gameModel.getUpdateGap();
             if(timer <= 0)
                 setState(State.ARMED);
@@ -52,6 +64,10 @@ public class PotatoMine extends Plant {
                 }
             }
         } else if(getState() == State.EXPLODE) {
+            if(explodeSoundEnabled) {
+                explosionPlayer.start();
+                explodeSoundEnabled = false;
+            }
             timer -= gameModel.getUpdateGap();
             if(timer <= 0)
                 gameModel.setPlant(row, col, null);

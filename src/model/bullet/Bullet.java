@@ -2,6 +2,7 @@ package model.bullet;
 
 import model.GameModel;
 import model.zombie.Zombie;
+import view.ingame.AudioPlayer;
 
 import java.io.Serializable;
 import java.util.List;
@@ -11,6 +12,8 @@ public abstract class Bullet implements Serializable {
     private final int speed;//从发射位置到边界耗费时间
     private final int damage;
     private String currentImagePath;
+
+    private AudioPlayer soundPlayer;
 
     public Bullet(int x, int speed, int damage) {
         this.x = x;
@@ -31,6 +34,7 @@ public abstract class Bullet implements Serializable {
             if (Math.abs(zombie.getX() - this.getX()) < 10) {
                 zombie.takeDamage(this.getDamage());
                 gameModel.getBullets(row).remove(index);
+                soundPlayer.start();
                 return true;
             }
         }
@@ -53,5 +57,9 @@ public abstract class Bullet implements Serializable {
 
     protected void setCurrentImagePath(String imagePath) {
         this.currentImagePath = imagePath;
+    }
+
+    public void setSoundPlayer(AudioPlayer soundPlayer) {
+        this.soundPlayer = soundPlayer;
     }
 }

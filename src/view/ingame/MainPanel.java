@@ -9,15 +9,12 @@ import model.plant.Plant;
 import model.seed.*;
 import model.zombie.Zombie;
 
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.LineUnavailableException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -32,12 +29,63 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
     private PauseMenuPanel pauseMenu;
     private Level level;
 
-    private AudioPlayer player = null;
+    private static final AudioPlayer COMMON_BGM_PLAYER;
+    private static final AudioPlayer FAST_BGM_PLAYER;
+    private AudioPlayer currentBGMPlayer;
+    private static final AudioPlayer FIRST_ARRIVE_SIREN_PLAYER;
+    private static final AudioPlayer SIREN_PLAYER;
+    private static final AudioPlayer PAUSE_SOUND_PLAYER;
+    private static final AudioPlayer[] PLANT_PLAYER = new AudioPlayer[2];
+    private static final AudioPlayer CHOOSE_SEED_PLAYER;
+    private static final AudioPlayer BUZZ_PLAYER;
+    private static final AudioPlayer SHOVEL_PLAYER;
+    private static final AudioPlayer[] TAP_PLAYER = new AudioPlayer[2];
 
     private static final Font STANDARD = new Font("Standard", Font.PLAIN, 15);
 
+    static {
+        COMMON_BGM_PLAYER = AudioPlayer.getAudioPlayer(
+                new File("sounds/bgm/GrassWalk.wav"),
+                AudioPlayer.LOOP);
+        FAST_BGM_PLAYER = AudioPlayer.getAudioPlayer(
+                new File("sounds/bgm/GrassWalk_fast.wav"),
+                AudioPlayer.LOOP);
+        PAUSE_SOUND_PLAYER = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/pause.wav"),
+                AudioPlayer.NORMAL);
+        FIRST_ARRIVE_SIREN_PLAYER = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/awooga.wav"),
+                AudioPlayer.NORMAL);
+        SIREN_PLAYER = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/siren.wav"),
+                AudioPlayer.NORMAL);
+        PLANT_PLAYER[0] = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/plant.wav"),
+                AudioPlayer.NORMAL);
+        PLANT_PLAYER[1] = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/plant2.wav"),
+                AudioPlayer.NORMAL);
+        CHOOSE_SEED_PLAYER = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/seedlift.wav"),
+                AudioPlayer.NORMAL);
+        BUZZ_PLAYER = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/buzzer.wav"),
+                AudioPlayer.NORMAL);
+        SHOVEL_PLAYER = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/shovel.wav"),
+                AudioPlayer.NORMAL);
+        TAP_PLAYER[0] = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/tap.wav"),
+                AudioPlayer.NORMAL);
+        TAP_PLAYER[1] = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/tap2.wav"),
+                AudioPlayer.NORMAL);
+    }
+
+    private int previousWave = 0;
+
     public MainPanel(Level level) {
-        super();
+        super(true);
         this.setBounds(0, 0, 835, 635);
         this.setLayout(null);
         this.addMouseListener(this);
@@ -59,22 +107,10 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         pauseMenu.setVisible(false);
         this.add(pauseMenu);
 
-        try {
-            AudioInputStream ais = AudioSystem.getAudioInputStream(new File("sounds/bgm/GrassWalk.wav"));
-            player = new AudioPlayer(ais, AudioPlayer.LOOP);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        currentBGMPlayer = COMMON_BGM_PLAYER;
+        currentBGMPlayer.start();
 
-        if(player != null) {
-            try {
-                player.start();
-            } catch (IOException | LineUnavailableException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        java.util.Timer timer = new Timer();
+        Timer timer = new Timer();
 
         timer.schedule(new TimerTask() {
             @Override
@@ -95,21 +131,19 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         }, 0, gameModel.getUpdateGap());
     }
 
-    @Override
-    public void paintComponent(Graphics g) {
-        super.paintComponent(g);
-
-        // 绘制背景
+    private void paintBackground(Graphics g) {
         g.drawImage(new ImageIcon("images/Background.jpg").getImage(),
                 -200, 0, null);
+    }
 
-        // 绘制种子槽和铲子槽
+    private void paintBanks(Graphics g) {
+        // 绘制种子槽和铲子槽本身
         g.drawImage(new ImageIcon("images/SeedBank.png").getImage(),
                 10, 10, null);
         g.drawImage(new ImageIcon("images/ShovelBank.png").getImage(),
                 413, 10, null);
 
-        // 绘制阳光数
+        // 绘制当前阳光数
         g.setFont(STANDARD);
         String numOfSun = Integer.toString(gameModel.getSun());
         g.drawString(numOfSun,
@@ -117,36 +151,27 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
 
         // 绘制种子卡片
         List<PlantSeed> seeds = gameModel.getSeeds();
-        for (int i = 0; i < seeds.size(); i++) {
+        for(int i = 0; i < seeds.size(); i++) {
             PlantSeed seed = seeds.get(i);
+            if(seed == null) continue;
+
             g.drawImage(new ImageIcon(seed.getImagePath()).getImage(),
                     85 + i * 53, 15, null);
-            // 绘制种子阳光不足和冷却未完成时覆盖的阴影
-            Graphics2D g2d = (Graphics2D) g;
-            if (!seed.goodToPlant(gameModel)) {
-                g2d.setComposite(AlphaComposite
-                        .getInstance(AlphaComposite.SRC_OVER, 0.5f));
-                g2d.setColor(Color.GRAY);
-                g2d.fillRect(85 + i * 53, 15, 53, 75);
-                if (seed.getCoolDown() != 0) {
-                    g2d.setColor(Color.BLACK);
-                    g2d.fillRect(85 + i * 53, 15,
-                            53, (int) (75 * seed.getCoolDown()));
-                }
-                g2d.setComposite(AlphaComposite
-                        .getInstance(AlphaComposite.SRC_OVER, 1.0f));
-                g2d.setColor(null);
-            }
 
-            // 绘制种子被选中时覆盖的阴影
-            if (gameModel.getSeedInHand() == seed) {
-                g2d.setComposite(AlphaComposite
-                        .getInstance(AlphaComposite.SRC_OVER, 0.5f));
-                g2d.setColor(Color.BLACK);
-                g2d.fillRect(85 + i * 53, 15, 53, 75);
-                g2d.setComposite(AlphaComposite
-                        .getInstance(AlphaComposite.SRC_OVER, 1.0f));
-                g2d.setColor(null);
+
+            if(!seed.goodToPlant(gameModel)) {
+                g.setColor(new Color(128, 128, 128, 128));
+                g.fillRect(85 + i * 53, 15, 53, 75);
+                if (seed.getCoolDown() != 0) {
+                    g.setColor(new Color(0, 0, 0, 128));
+                    g.fillRect(85 + i * 53, 15,
+                            53, (int) (75 * seed.getCoolDown()));
+                    g.setColor(null);
+                }
+            } else if(gameModel.getSeedInHand() == seed) {
+                g.setColor(new Color(0, 0, 0, 128));
+                g.fillRect(85 + i * 53, 15, 53, 75);
+                g.setColor(null);
             }
         }
 
@@ -154,7 +179,9 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         if (!gameModel.isGrabShovel())
             g.drawImage(new ImageIcon("images/Shovel.png").getImage(),
                     410, 5, null);
+    }
 
+    private void paintShadows(Graphics g) {
         int blockWidth = gameModel.getBlockWidth();
         int blockHeight = gameModel.getBlockHeight();
         // 绘制植物底下的影子
@@ -170,7 +197,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         }
         // 绘制僵尸底下的影子
         for (int row = 0; row < gameModel.getRows(); row++) {
-            java.util.List<Zombie> zombies = gameModel.getZombies(row);
+            List<Zombie> zombies = gameModel.getZombies(row);
             for (Zombie zombie : zombies) {
                 Image image = new ImageIcon("images/shadow.png").getImage();
                 g.drawImage(image, (int) (deltaX + zombie.getX() - image.getWidth(null) / 2.0),
@@ -183,29 +210,56 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
             for (Bullet bullet : bullets) {
                 Image image = new ImageIcon("images/Bullet/bulletShadow.png").getImage();
                 g.drawImage(image, (int) (deltaX + bullet.getX() - image.getWidth(null) / 2.0),
-                        (int) (deltaY + (row + 0.5) * blockHeight + image.getHeight(null) / 2.0), null);
+                        (int) (deltaY + (row + 0.5) * blockHeight + image.getHeight(null) * 3.0), null);
             }
         }
-        //绘制植物
+    }
+
+    public void paintPlants(Graphics g) {
+        int blockWidth = gameModel.getBlockWidth();
+        int blockHeight = gameModel.getBlockHeight();
+
+        Graphics2D g2d = (Graphics2D) g;
+
         for (int row = 0; row < gameModel.getRows(); row++) {
             for (int col = 0; col < gameModel.getCols(); col++) {
                 Plant plant = gameModel.getPlant(row, col);
-                if (plant == null)
-                    continue;
-                Image image = new ImageIcon(plant.getCurrentImagePath()).getImage();
-                g.drawImage(image, (int) (deltaX + (col + 0.5) * blockWidth - image.getWidth(null) / 2.0),
+                Image image;
+                if (plant == null) {
+                    PlantSeed seedInHand = gameModel.getSeedInHand();
+                    if(seedInHand != null && gameModel.getRow(mousePos) == row && gameModel.getCol(mousePos) == col) {
+                        image = new ImageIcon(seedInHand.getPlant().getCurrentImagePath()).getImage();
+                        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+                    } else {
+                        continue;
+                    }
+                } else {
+                    image = new ImageIcon(plant.getCurrentImagePath()).getImage();
+                }
+                g2d.drawImage(image, (int) (deltaX + (col + 0.5) * blockWidth - image.getWidth(null) / 2.0),
                         (int) (deltaY + (row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
             }
         }
+    }
+
+    public void paintZombies(Graphics g) {
+        int blockHeight = gameModel.getBlockHeight();
+
         //绘制僵尸
         for (int row = 0; row < gameModel.getRows(); row++) {
-            java.util.List<Zombie> zombies = gameModel.getZombies(row);
+            List<Zombie> zombies = gameModel.getZombies(row);
             for (Zombie zombie : zombies) {
                 Image image = new ImageIcon(zombie.getCurrentImagePath()).getImage();
                 g.drawImage(image, (int) (deltaX + zombie.getX() - image.getWidth(null) / 2.0),
                         (int) (deltaY + (row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
             }
         }
+    }
+
+    public void paintBullets(Graphics g) {
+        int blockHeight = gameModel.getBlockHeight();
+
         //绘制子弹
         for (int row = 0; row < gameModel.getRows(); row++) {
             List<Bullet> bullets = gameModel.getBullets(row);
@@ -215,6 +269,10 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                         (int) (deltaY + (row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
             }
         }
+    }
+
+    public void paintLawnMowers(Graphics g) {
+        int blockHeight = gameModel.getBlockHeight();
 
         //绘制割草机
         for (int row = 0; row < gameModel.getRows(); ++row) {
@@ -225,41 +283,76 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
             g.drawImage(image, (int) (deltaX + lawnMower.getX() - image.getWidth(null) / 2.0),
                     (int) (deltaY + (row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
         }
+    }
 
-        // 绘制关卡进度条
-        if(level.getCurrentWave() != 0) {
-            double rate = (double) level.getCurrentWave() / level.getTotalWave();
-            g.drawImage(new ImageIcon("images/Panels/FlagMeter_Empty.png").getImage(),
-                    600, 575, 758, 602, 0, 0, 158, 27, null);
-            g.drawImage(new ImageIcon("images/Panels/FlagMeter.png").getImage(),
-                    600 + (int) (158 * (1 - rate)), 575, 758, 602,
-                    (int) (158 * (1 - rate)), 0, 158, 27, null);
-            for (double i = 0; i <= level.getTotalWave(); i += 10) {
-                if (i == 0) continue;
-                g.drawImage(new ImageIcon("images/Panels/FlagMeterParts_FlagPole.png").getImage(),
-                        607 + (int) (145 * (1 - i / level.getTotalWave())), 575, null);
-                g.drawImage(new ImageIcon("images/Panels/FlagMeterParts_Flag.png").getImage(),
-                        607 + (int) (145 * (1 - i / level.getTotalWave())),
-                        (level.getCurrentWave() >= i ? 566 : 575), null);
-            }
-            g.drawImage(new ImageIcon("images/Panels/FlagMeterParts_Head.png").getImage(),
-                    600 + (int) (145 * (1 - (double) level.getCurrentWave() / level.getTotalWave())),
-                    575, null);
+    public void paintLoadBar(Graphics g) {
+        double rate = (double) level.getCurrentWave() / level.getTotalWave();
+        g.drawImage(new ImageIcon("images/Panels/FlagMeter_Empty.png").getImage(),
+                600, 575, 758, 602, 0, 0, 158, 27, null);
+        g.drawImage(new ImageIcon("images/Panels/FlagMeter.png").getImage(),
+                600 + (int) (158 * (1 - rate)), 575, 758, 602,
+                (int) (158 * (1 - rate)), 0, 158, 27, null);
+        for (double i = 0; i <= level.getTotalWave(); i += 10) {
+            if (i == 0) continue;
+            g.drawImage(new ImageIcon("images/Panels/FlagMeterParts_FlagPole.png").getImage(),
+                    607 + (int) (145 * (1 - i / level.getTotalWave())), 575, null);
+            g.drawImage(new ImageIcon("images/Panels/FlagMeterParts_Flag.png").getImage(),
+                    607 + (int) (145 * (1 - i / level.getTotalWave())),
+                    (level.getCurrentWave() >= i ? 566 : 575), null);
         }
+        g.drawImage(new ImageIcon("images/Panels/FlagMeterParts_Head.png").getImage(),
+                600 + (int) (145 * (1 - (double) level.getCurrentWave() / level.getTotalWave())),
+                575, null);
+    }
 
-
-        //绘制阳光
+    public void paintSun(Graphics g) {
         for (Sun sun : gameModel.getSuns()) {
             Image image = new ImageIcon(sun.getCurrentImagePath()).getImage();
             g.drawImage(image, (int) (deltaX / 2.0 + sun.getX() - image.getWidth(null) / 2.0),
                     (int) (deltaY + deltaY + sun.getY() - image.getHeight(null) / 2.0), null);
         }
+    }
 
-        //绘制玩家持有物
+    @Override
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        paintBackground(g);
+        paintBanks(g);
+        paintShadows(g);
+        paintPlants(g);
+        paintZombies(g);
+        paintBullets(g);
+        paintLawnMowers(g);
+        if(level.getCurrentWave() != 0)
+            paintLoadBar(g);
+        paintSun(g);
+
         if (imageFollowMouse != null)
             g.drawImage(imageFollowMouse,
                     mousePos.x - imageFollowMouse.getWidth(null) / 2,
                     mousePos.y - imageFollowMouse.getHeight(null) / 2, null);
+
+        // 根据僵尸数量切换bgm
+        int numOfZombies = gameModel.getNumOfZombies();
+        if(currentBGMPlayer == COMMON_BGM_PLAYER && numOfZombies >= 4) {
+            currentBGMPlayer = FAST_BGM_PLAYER;
+            FAST_BGM_PLAYER.startFrom(COMMON_BGM_PLAYER.getCurrentFrame());
+            COMMON_BGM_PLAYER.stop();
+        } else if(currentBGMPlayer == FAST_BGM_PLAYER && numOfZombies < 4) {
+            currentBGMPlayer = COMMON_BGM_PLAYER;
+            COMMON_BGM_PLAYER.startFrom(FAST_BGM_PLAYER.getCurrentFrame());
+            FAST_BGM_PLAYER.stop();
+        }
+
+        if(previousWave == level.getCurrentWave() - 1) {
+            if(level.getCurrentWave() == 1)
+                FIRST_ARRIVE_SIREN_PLAYER.start();
+            else if(level.getCurrentWave() % 10 == 0
+                    || level.getCurrentWave() == level.getTotalWave())
+                SIREN_PLAYER.start();
+        }
+        previousWave = level.getCurrentWave();
     }
 
     @Override
@@ -282,6 +375,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                 int y_diff = p.y - (temp.getY() + deltaY * 2);
                 if (x_diff >= -96 && x_diff <= 96 && y_diff >= -96 && y_diff <= 96) {
                     gameModel.setSun(gameModel.getSun() + temp.getAmount());
+                    temp.playSound();
                     sunList.remove(i);
                     return;
                 }
@@ -290,31 +384,44 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
             int y_diff = p.y - 15;
             if (x_diff >= 0 && x_diff <= 318 && y_diff >= 0 && y_diff <= 75) {
                 int i = x_diff / 53;
-                if (i < gameModel.getSeeds().size()
-                        && gameModel.getSeeds().get(i).goodToPlant(gameModel)) {
-                    gameModel.setSeedInHand(gameModel.getSeeds().get(i));
-                    imageFollowMouse = new ImageIcon(gameModel.getSeedInHand()
-                            .getPlant()
-                            .getCurrentImagePath())
-                            .getImage();
+                if (i < gameModel.getSeeds().size()) {
+                    if(gameModel.getSeeds().get(i).goodToPlant(gameModel)) {
+                        gameModel.setSeedInHand(gameModel.getSeeds().get(i));
+                        imageFollowMouse = new ImageIcon(gameModel.getSeedInHand()
+                                .getPlant()
+                                .getCurrentImagePath())
+                                .getImage();
+                        CHOOSE_SEED_PLAYER.start();
+                    } else {
+                        BUZZ_PLAYER.start();
+                    }
                 }
             } else if (x_diff > 318 && x_diff <= 388 && y_diff >= 0 && y_diff <= 72) {
                 gameModel.setGrabShovel(true);
                 imageFollowMouse = new ImageIcon("images/Shovel.png")
                         .getImage();
+                SHOVEL_PLAYER.start();
             }
         } else if (gameModel.isGrabShovel()) {
             int row = gameModel.getRow(mousePos);
             int col = gameModel.getCol(mousePos);
-            if (row != -1 && col != -1)
+            if (row != -1 && col != -1) {
                 gameModel.setPlant(row, col, null);
+                PLANT_PLAYER[0].start();
+            } else {
+                TAP_PLAYER[new Random().nextInt(0, 2)].start();
+            }
             gameModel.setGrabShovel(false);
             imageFollowMouse = null;
         } else if (gameModel.getSeedInHand() != null) {
             int row = gameModel.getRow(mousePos);
             int col = gameModel.getCol(mousePos);
-            if (row != -1 && col != -1 && gameModel.getPlant(row, col) == null)
+            if (row != -1 && col != -1 && gameModel.getPlant(row, col) == null) {
                 gameModel.getSeedInHand().plant(gameModel, row, col);
+                PLANT_PLAYER[new Random().nextInt(0, 2)].start();
+            } else {
+                TAP_PLAYER[new Random().nextInt(0, 2)].start();
+            }
             gameModel.setSeedInHand(null);
             imageFollowMouse = null;
         }
@@ -350,19 +457,16 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         JButton source = (JButton) e.getSource();
         if (source instanceof PauseButton) {
             if (gameModel.getState() == GameModel.State.RUNNING) {
+                PAUSE_SOUND_PLAYER.startFrom(0);
                 gameModel.pauseGame();
                 pauseMenu.setVisible(true);
-                player.stop();
+                currentBGMPlayer.stop();
             }
         } else if(source instanceof BackToGameButton) {
             if(gameModel.getState() == GameModel.State.PAUSED) {
                 gameModel.continueGame();
                 pauseMenu.setVisible(false);
-                try {
-                    player.start();
-                } catch (IOException | LineUnavailableException ex) {
-                    throw new RuntimeException(ex);
-                }
+                currentBGMPlayer.continuePlay();
             }
         } else if(source instanceof RestartButton) {
             level = new Level(level.getInitialSun(), level.getTotalWave());
@@ -374,11 +478,8 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                 gameModel.addSeed(new PotatoMineSeed());
             }
             pauseMenu.setVisible(false);
-            try {
-                player.start(0);
-            } catch (IOException | LineUnavailableException ex) {
-                throw new RuntimeException(ex);
-            }
+            currentBGMPlayer = COMMON_BGM_PLAYER;
+            currentBGMPlayer.start();
         }
     }
 }

@@ -2,9 +2,15 @@ package model.plant;
 
 import model.GameModel;
 import model.bullet.Pea;
+import view.ingame.AudioPlayer;
+
+import java.io.File;
 
 public class Peashooter extends Plant {
     private int timer;
+
+    private AudioPlayer shootPlayer = AudioPlayer.getAudioPlayer(
+            new File("sounds/audio/cherrybomb.wav"), AudioPlayer.NORMAL);
 
     public Peashooter() {
         super(300, 1500);
@@ -26,6 +32,7 @@ public class Peashooter extends Plant {
             if (gameModel.getZombies(row).isEmpty()) {
                 setState(State.IDLE);
             } else if (timer >= getPerformGap()) {
+                shootPlayer.start();
                 gameModel.addBullet(row, new Pea((col + 1) * gameModel.getWidth() / gameModel.getCols()));
                 timer -= getPerformGap();
             }

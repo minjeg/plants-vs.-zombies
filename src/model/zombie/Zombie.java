@@ -3,8 +3,11 @@ package model.zombie;
 import model.GameModel;
 import model.LawnMower;
 import model.plant.Plant;
+import view.ingame.AudioPlayer;
 
+import java.io.File;
 import java.io.Serializable;
+import java.util.Random;
 
 public abstract class Zombie implements Serializable {
     private int health;
@@ -14,6 +17,21 @@ public abstract class Zombie implements Serializable {
     private final int damage;//每秒伤害
     private State state = State.WALKING;
     private String currentImagePath;
+
+    private AudioPlayer[] eatSoundPlayer = new AudioPlayer[3];
+    private AudioPlayer gulpSoundPlayer;
+    int soundPlayTimer = 0;
+
+    {
+        eatSoundPlayer[0] = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/chomp.wav"), AudioPlayer.NORMAL);
+        eatSoundPlayer[1] = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/chomp2.wav"), AudioPlayer.NORMAL);
+        eatSoundPlayer[2] = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/chompsoft.wav"), AudioPlayer.NORMAL);
+        gulpSoundPlayer = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/gulp.wav"), AudioPlayer.NORMAL);
+    }
 
     public enum State {WALKING, EATING}
 
@@ -56,8 +74,15 @@ public abstract class Zombie implements Serializable {
                 setState(State.WALKING);
             else {
                 plant.takeDamage(gameModel.getUpdateGap() * getDamage() / 1000);
-                if (plant.isDead())
+                soundPlayTimer += 20;
+                if(soundPlayTimer == 1000) {
+                    eatSoundPlayer[new Random().nextInt(0, 3)].start();
+                    soundPlayTimer = 0;
+                }
+                if (plant.isDead()) {
+                    gulpSoundPlayer.start();
                     setState(State.WALKING);
+                }
             }
         }
         return false;
