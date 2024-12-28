@@ -30,7 +30,7 @@ public class AudioPlayer {
 
     // 从指定的某一帧开始播放
     public void startFrom(int frame) {
-        audioClip.setFramePosition(frame);
+        audioClip.setFramePosition(frame % audioClip.getFrameLength());
         audioClip.start();
         if(isLoop) audioClip.loop(Clip.LOOP_CONTINUOUSLY);
     }
