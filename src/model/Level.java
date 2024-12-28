@@ -65,11 +65,10 @@ public class Level implements Serializable {
     }
 
     public void update(GameModel gameModel) {
-        if (currentWave == totalWave && gameModel.getTotalZombieHealth() == 0) {
-            gameModel.setState(GameModel.State.WIN);
-            return;
-        }
-        if (currentTime >= totalTime) {
+        if (currentWave == totalWave) {
+            if (gameModel.getTotalZombieHealth() == 0)
+                gameModel.setState(GameModel.State.WIN);
+        } else if (currentTime >= totalTime) {
             currentTime -= totalTime;
             if (currentWave > 4 && currentWave < 25) {
                 zombieTypes.getFirst().setWeight(zombieTypes.getFirst().getWeight() - 180);
@@ -82,7 +81,7 @@ public class Level implements Serializable {
             else
                 totalTime = (long) ((25 + Math.random() * 6) * 1000);
             if (currentWave < totalWave) {
-                System.out.println("第" + (currentWave + 1) + "波");
+                System.out.println("第" + (currentWave + 1) + "波，级别上限" + getLevelUpperLimit(currentWave));
                 if (isFlagWave(currentWave)) {
                     System.out.println("一大波僵尸正在接近！");
                     if (currentWave == totalWave - 1)
@@ -114,8 +113,10 @@ public class Level implements Serializable {
                 }, 0, 500);
             }
         } else {
-            if (currentTime > 4000 && currentWave != 0 && 2 * gameModel.getTotalZombieHealth() <= currentWaveTotalZombieHealth && totalTime - currentTime > 2000)
+            if (currentTime > 4000 && currentWave != 0 && 2 * gameModel.getTotalZombieHealth() <= currentWaveTotalZombieHealth && totalTime - currentTime > 2000) {
+                System.out.println(gameModel.getTotalZombieHealth() + "/" + currentWaveTotalZombieHealth);
                 currentTime = totalTime - 2000;
+            }
             currentTime += gameModel.getUpdateGap();
         }
     }

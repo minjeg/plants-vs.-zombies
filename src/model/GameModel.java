@@ -9,7 +9,7 @@ import java.awt.*;
 import java.io.*;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GameModel implements Serializable {
     private final List<List<Plant>> plants = new ArrayList<>();
@@ -22,6 +22,7 @@ public class GameModel implements Serializable {
     private final Level level;
     private int sun;
     private int fallenSunNumber = 0;
+    private long sunTimer = (long) (4250 + Math.random() * 2740);
     private int totalZombieHealth;
     private final int updateGap;
     private State state = State.RUNNING;
@@ -47,34 +48,14 @@ public class GameModel implements Serializable {
         this.blockHeight = height / rows;
 
         for (int i = 0; i < rows; ++i) {
-            zombies.add(new ArrayList<>());
-            plants.add(new ArrayList<>());
-            bullets.add(new ArrayList<>());
+            zombies.add(new CopyOnWriteArrayList<>());
+            plants.add(new CopyOnWriteArrayList<>());
+            bullets.add(new CopyOnWriteArrayList<>());
             lawnMowers.add(new LawnMower());
             for (int j = 0; j < cols; ++j)
                 plants.get(i).add(null);
         }
         Timer timer = new Timer();
-
-        //阳光自然出现
-        timer.scheduleAtFixedRate(new TimerTask() {
-            private long timer = (long) (4250 + Math.random() * 2740);
-
-            @Override
-            public void run() {
-                if (state == State.RUNNING) {
-                    timer -= updateGap;
-                    if (timer <= 0) {
-                        addSun(new Sun(GameModel.this));
-                        ++fallenSunNumber;
-                        timer = (long) (Math.min(100L * fallenSunNumber + 4250, 9500) + Math.random() * 2740);
-                    }
-                } else if (state == State.WIN || state == State.LOSE) {
-                    this.cancel();
-                }
-            }
-        }, updateGap, updateGap);
-
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -113,30 +94,6 @@ public class GameModel implements Serializable {
                 }
             }
         });
-        plantThread.start();
-        //子弹更新
-        Thread bulletThread = new Thread(() -> {
-            for (int row = 0; row < rows; ++row) {
-                List<Bullet> rowBullets = bullets.get(row);
-                for (int index = 0; index < rowBullets.size(); ++index) {
-                    Bullet bullet = rowBullets.get(index);
-                    if (bullet.update(this, row, index)) {
-                        --index;
-                    }
-                }
-            }
-        });
-        bulletThread.start();
-        //太阳更新
-        Thread sunThread = new Thread(() -> {
-            for (int index = 0; index < suns.size(); ++index) {
-                Sun sun = suns.get(index);
-                if (sun.update(this, index)) {
-                    --index;
-                }
-            }
-        });
-        sunThread.start();
         //种子更新
         Thread seedThread = new Thread(() -> {
             for (PlantSeed seed : seedBank)
@@ -152,21 +109,48 @@ public class GameModel implements Serializable {
             }
         });
         lawnMowerThread.start();
-        //关卡更新
-        Thread levelThread = new Thread(() -> level.update(this));
-        levelThread.start();
+        plantThread.start();
+        //子弹更新
+        Thread bulletThread = new Thread(() -> {
+            for (int row = 0; row < rows; ++row) {
+                List<Bullet> rowBullets = bullets.get(row);
+                for (int index = 0; index < rowBullets.size(); ++index) {
+                    Bullet bullet = rowBullets.get(index);
+                    if (bullet.update(this, row, index))
+                        --index;
+                }
+            }
+        });
+        bulletThread.start();
+        //太阳更新
+        Thread sunThread = new Thread(() -> {
+            sunTimer -= updateGap;
+            if (sunTimer <= 0) {
+                addSun(new Sun(GameModel.this));
+                ++fallenSunNumber;
+                sunTimer = (long) (Math.min(100L * fallenSunNumber + 4250, 9500) + Math.random() * 2740);
+            }
+            for (int index = 0; index < suns.size(); ++index) {
+                Sun sun = suns.get(index);
+                if (sun.update(this, index))
+                    --index;
+            }
+        });
+        sunThread.start();
         //僵尸更新
         totalZombieHealth = 0;
         for (int row = 0; row < rows; ++row) {
             List<Zombie> rowZombies = zombies.get(row);
             for (int index = 0; index < rowZombies.size(); ++index) {
                 Zombie zombie = rowZombies.get(index);
-                if (zombie.update(this, row, index)) {
+                if (zombie.update(this, row, index))
                     --index;
-                }
-                totalZombieHealth += zombie.getHealth();
+                else
+                    totalZombieHealth += zombie.getHealth();
             }
         }
+        //关卡更新
+        level.update(this);
         //保证数据都完成更新
         try {
             plantThread.join();
@@ -174,7 +158,6 @@ public class GameModel implements Serializable {
             sunThread.join();
             seedThread.join();
             lawnMowerThread.join();
-            levelThread.join();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -320,7 +303,7 @@ public class GameModel implements Serializable {
 
     public int getNumOfZombies() {
         int ret = 0;
-        for(var e : zombies) ret += e.size();
+        for (var e : zombies) ret += e.size();
         return ret;
     }
 }
