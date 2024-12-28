@@ -61,7 +61,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
 
         try {
             AudioInputStream ais = AudioSystem.getAudioInputStream(new File("sounds/bgm/GrassWalk.wav"));
-            player = new AudioPlayer(ais, true);
+            player = new AudioPlayer(ais, AudioPlayer.LOOP);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
