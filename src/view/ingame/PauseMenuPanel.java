@@ -4,13 +4,13 @@ import javax.swing.*;
 import java.awt.*;
 
 public class PauseMenuPanel extends JPanel {
-    public PauseMenuPanel(MainPanel mainPanel) {
+    public PauseMenuPanel(GamePanel gamePanel) {
         this.setOpaque(false);
         this.setBounds(120, -10, 490, 580);
         this.setLayout(null);
-        this.add(new RestartButton(mainPanel));
-        this.add(new ReturnToMenuButton(mainPanel));
-        this.add(new BackToGameButton(mainPanel));
+        this.add(new RestartButton(gamePanel));
+        this.add(new ReturnToMenuButton(gamePanel));
+        this.add(new BackToGameButton(gamePanel));
     }
 
     @Override

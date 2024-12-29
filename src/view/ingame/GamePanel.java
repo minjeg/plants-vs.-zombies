@@ -21,7 +21,7 @@ import java.util.TimerTask;
 
 import static javax.swing.JOptionPane.showMessageDialog;
 
-public class MainPanel extends JPanel implements MouseListener, MouseMotionListener, ActionListener {
+public class GamePanel extends JPanel implements MouseListener, MouseMotionListener, ActionListener {
     private Image imageFollowMouse = null;
     private Point mousePos = new Point(410, 5);
     private GameModel gameModel;
@@ -85,7 +85,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
 
     private int previousWave = 0;
 
-    public MainPanel(Level level) {
+    public GamePanel(Level level) {
         super(true);
         this.setBounds(0, 0, 835, 635);
         this.setLayout(null);
@@ -103,6 +103,8 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
             gameModel.addSeed(new WallNutSeed());
             gameModel.addSeed(new PotatoMineSeed());
             gameModel.addSeed(new CherryBombSeed());
+//            gameModel.addSeed(new ChomperSeed());
+            gameModel.addSeed(new RepeaterSeed());
         }
 
         pauseMenu = new PauseMenuPanel(this);
@@ -123,10 +125,10 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                     }
                 } else if (gameModel.getState() == GameModel.State.WIN) {
                     repaint();
-                    showMessageDialog(MainPanel.this, "You win!");
+                    showMessageDialog(GamePanel.this, "You win!");
                     this.cancel();
                 } else if (gameModel.getState() == GameModel.State.LOSE) {
-                    showMessageDialog(MainPanel.this, "You lose!");
+                    showMessageDialog(GamePanel.this, "You lose!");
                     this.cancel();
                 }
             }
@@ -514,6 +516,8 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                 gameModel.addSeed(new WallNutSeed());
                 gameModel.addSeed(new PotatoMineSeed());
                 gameModel.addSeed(new CherryBombSeed());
+//                gameModel.addSeed(new ChomperSeed());
+                gameModel.addSeed(new RepeaterSeed());
             }
             pauseMenu.setVisible(false);
             currentBGMPlayer = COMMON_BGM_PLAYER;

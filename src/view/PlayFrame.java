@@ -1,17 +1,16 @@
 package view;
 
 import model.Level;
-import view.ingame.MainPanel;
+import view.ingame.GamePanel;
 import view.intromenu.ExitGameButton;
-import view.intromenu.MenuPanel;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class PlayFrame extends JFrame implements ActionListener {
-    private MenuPanel menuPanel = new MenuPanel(this);
-    private MainPanel mainPanel = new MainPanel(new Level(50, 20));
+//    private MenuPanel menuPanel = new MenuPanel(this);
+    private GamePanel gamePanel = new GamePanel(new Level(5000, 20));
 
     public PlayFrame() {
         this.setVisible(true);
@@ -25,7 +24,7 @@ public class PlayFrame extends JFrame implements ActionListener {
         this.setResizable(false);
 
 //        this.add(menuPanel);
-        this.add(mainPanel);
+        this.add(gamePanel);
 //        mainPanel.setVisible(false);
     }
 

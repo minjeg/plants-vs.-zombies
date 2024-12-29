@@ -10,7 +10,7 @@ public abstract class Plant implements Serializable {
     private State state = State.IDLE;
     private String currentImagePath;
 
-    public enum State {IDLE, SHOOTING, RISE, ARMED, CHOMP, CHEW, SWALLOW, EXPLODING, EXPLODE}
+    public enum State {IDLE, SHOOTING, RISE, ARMED, ATTACK, CHOMP, CHEW, SWALLOW, EXPLODING, EXPLODE}
 
     public Plant(int health, int performGap) {
         this.health = health;
