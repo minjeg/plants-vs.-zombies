@@ -101,6 +101,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
             gameModel.addSeed(new SunflowerSeed());
             gameModel.addSeed(new WallNutSeed());
             gameModel.addSeed(new PotatoMineSeed());
+            gameModel.addSeed(new CherryBombSeed());
         }
 
         pauseMenu = new PauseMenuPanel(this);
@@ -151,15 +152,15 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
 
         // 绘制种子卡片
         List<PlantSeed> seeds = gameModel.getSeeds();
-        for(int i = 0; i < seeds.size(); i++) {
+        for (int i = 0; i < seeds.size(); i++) {
             PlantSeed seed = seeds.get(i);
-            if(seed == null) continue;
+            if (seed == null) continue;
 
             g.drawImage(new ImageIcon(seed.getImagePath()).getImage(),
                     85 + i * 53, 15, null);
 
 
-            if(!seed.goodToPlant(gameModel)) {
+            if (!seed.goodToPlant(gameModel)) {
                 g.setColor(new Color(128, 128, 128, 128));
                 g.fillRect(85 + i * 53, 15, 53, 75);
                 if (seed.getCoolDown() != 0) {
@@ -168,7 +169,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                             53, (int) (75 * seed.getCoolDown()));
                     g.setColor(null);
                 }
-            } else if(gameModel.getSeedInHand() == seed) {
+            } else if (gameModel.getSeedInHand() == seed) {
                 g.setColor(new Color(0, 0, 0, 128));
                 g.fillRect(85 + i * 53, 15, 53, 75);
                 g.setColor(null);
@@ -227,7 +228,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                 Image image;
                 if (plant == null) {
                     PlantSeed seedInHand = gameModel.getSeedInHand();
-                    if(seedInHand != null && gameModel.getRow(mousePos) == row && gameModel.getCol(mousePos) == col) {
+                    if (seedInHand != null && gameModel.getRow(mousePos) == row && gameModel.getCol(mousePos) == col) {
                         image = new ImageIcon(seedInHand.getPlant().getCurrentImagePath()).getImage();
                         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
                     } else {
@@ -324,7 +325,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         paintZombies(g);
         paintBullets(g);
         paintLawnMowers(g);
-        if(level.getCurrentWave() != 0)
+        if (level.getCurrentWave() != 0)
             paintLoadBar(g);
         paintSun(g);
 
@@ -335,20 +336,20 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
 
         // 根据僵尸数量切换bgm
         int numOfZombies = gameModel.getNumOfZombies();
-        if(currentBGMPlayer == COMMON_BGM_PLAYER && numOfZombies >= 4) {
+        if (currentBGMPlayer == COMMON_BGM_PLAYER && numOfZombies >= 4) {
             currentBGMPlayer = FAST_BGM_PLAYER;
             FAST_BGM_PLAYER.startFrom(COMMON_BGM_PLAYER.getCurrentFrame());
             COMMON_BGM_PLAYER.stop();
-        } else if(currentBGMPlayer == FAST_BGM_PLAYER && numOfZombies < 4) {
+        } else if (currentBGMPlayer == FAST_BGM_PLAYER && numOfZombies < 4) {
             currentBGMPlayer = COMMON_BGM_PLAYER;
             COMMON_BGM_PLAYER.startFrom(FAST_BGM_PLAYER.getCurrentFrame());
             FAST_BGM_PLAYER.stop();
         }
 
-        if(previousWave == level.getCurrentWave() - 1) {
-            if(level.getCurrentWave() == 1)
+        if (previousWave == level.getCurrentWave() - 1) {
+            if (level.getCurrentWave() == 1)
                 FIRST_ARRIVE_SIREN_PLAYER.start();
-            else if(level.getCurrentWave() % 10 == 0
+            else if (level.getCurrentWave() % 10 == 0
                     || level.getCurrentWave() == level.getTotalWave())
                 SIREN_PLAYER.start();
         }
@@ -364,7 +365,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
     public void mousePressed(MouseEvent e) {
         Point p = e.getPoint();
         mousePos = e.getPoint();
-        if(gameModel.getState() == GameModel.State.LOSE ||
+        if (gameModel.getState() == GameModel.State.LOSE ||
                 gameModel.getState() == GameModel.State.PAUSED)
             return;
         if (!gameModel.isGrabShovel() && gameModel.getSeedInHand() == null) {
@@ -385,7 +386,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
             if (x_diff >= 0 && x_diff <= 318 && y_diff >= 0 && y_diff <= 75) {
                 int i = x_diff / 53;
                 if (i < gameModel.getSeeds().size()) {
-                    if(gameModel.getSeeds().get(i).goodToPlant(gameModel)) {
+                    if (gameModel.getSeeds().get(i).goodToPlant(gameModel)) {
                         gameModel.setSeedInHand(gameModel.getSeeds().get(i));
                         imageFollowMouse = new ImageIcon(gameModel.getSeedInHand()
                                 .getPlant()
@@ -462,13 +463,13 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                 pauseMenu.setVisible(true);
                 currentBGMPlayer.stop();
             }
-        } else if(source instanceof BackToGameButton) {
-            if(gameModel.getState() == GameModel.State.PAUSED) {
+        } else if (source instanceof BackToGameButton) {
+            if (gameModel.getState() == GameModel.State.PAUSED) {
                 gameModel.continueGame();
                 pauseMenu.setVisible(false);
                 currentBGMPlayer.continuePlay();
             }
-        } else if(source instanceof RestartButton) {
+        } else if (source instanceof RestartButton) {
             level = new Level(level.getInitialSun(), level.getTotalWave());
             gameModel = new GameModel(720, 500, 30, level);
             synchronized (gameModel) {
@@ -476,6 +477,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                 gameModel.addSeed(new SunflowerSeed());
                 gameModel.addSeed(new WallNutSeed());
                 gameModel.addSeed(new PotatoMineSeed());
+                gameModel.addSeed(new CherryBombSeed());
             }
             pauseMenu.setVisible(false);
             currentBGMPlayer = COMMON_BGM_PLAYER;

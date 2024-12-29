@@ -14,7 +14,7 @@ public class Level implements Serializable {
     private int currentWave = 0;
     private final int totalWave;
     private long currentTime = 0, totalTime = 18000;
-    private int currentWaveTotalZombieHealth, nextWaveTotalZombieHealth;
+    private int currentWaveTotalZombieHealth;
     private List<Zombie> nextWaveZombies;
 
     private final List<Double> rowWeight;
@@ -59,9 +59,6 @@ public class Level implements Serializable {
             secondLastPicked.add(0);
         }
         nextWaveZombies = decideZombies(currentWave);
-        nextWaveTotalZombieHealth = 0;
-        for (Zombie zombie : nextWaveZombies)
-            nextWaveTotalZombieHealth += zombie.getHealth();
     }
 
     public void update(GameModel gameModel) {
@@ -95,22 +92,20 @@ public class Level implements Serializable {
                     public void run() {
                         if (zombies == null) {
                             zombies = nextWaveZombies;
-                            currentWaveTotalZombieHealth = nextWaveTotalZombieHealth;
+                            currentWaveTotalZombieHealth = 0;
                             new Thread(() -> {
                                 nextWaveZombies = decideZombies(currentWave + 1);
-                                nextWaveTotalZombieHealth = 0;
-                                for (Zombie zombie : nextWaveZombies)
-                                    nextWaveTotalZombieHealth += zombie.getHealth();
                             }).start();
                         } else if (index == zombies.size()) {
                             ++currentWave;
                             this.cancel();
                         } else {
                             gameModel.addZombie(decideRow(), zombies.get(index));
+                            currentWaveTotalZombieHealth += zombies.get(index).getHealth();
                             ++index;
                         }
                     }
-                }, 0, 500);
+                }, 0, 1000);
             }
         } else {
             if (currentTime > 4000 && currentWave != 0 && 2 * gameModel.getTotalZombieHealth() <= currentWaveTotalZombieHealth && totalTime - currentTime > 2000) {
