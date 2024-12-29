@@ -1,7 +1,9 @@
 package model;
 
 import model.zombie.Zombie;
+import view.ingame.AudioPlayer;
 
+import java.io.File;
 import java.io.Serializable;
 
 public class LawnMower implements Serializable {
@@ -10,6 +12,9 @@ public class LawnMower implements Serializable {
     private final int speed = 2000;//从初始位置到边界耗费的毫秒数
     private String currentImagePath;
     State state;
+
+    private AudioPlayer soundPlayer = AudioPlayer.getAudioPlayer(
+            new File("sounds/audio/lawnmower.wav"), AudioPlayer.NORMAL);
 
     public enum State {ON, OFF}
 
@@ -43,7 +48,9 @@ public class LawnMower implements Serializable {
         this.state = state;
         if (state == State.OFF)
             currentImagePath = "images/LawnMower/idle.png";
-        else if (state == State.ON)
+        else if (state == State.ON) {
             currentImagePath = "images/LawnMower/moving.gif";
+            soundPlayer.start();
+        }
     }
 }

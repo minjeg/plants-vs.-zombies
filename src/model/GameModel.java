@@ -2,8 +2,8 @@ package model;
 
 import model.bullet.Bullet;
 import model.plant.Plant;
+import model.seed.*;
 import model.zombie.Zombie;
-import model.seed.PlantSeed;
 
 import java.awt.*;
 import java.io.*;
@@ -18,6 +18,16 @@ public class GameModel implements Serializable {
     private final List<LawnMower> lawnMowers = new ArrayList<>();
     private final List<PlantSeed> seedBank = new ArrayList<>();
     private final List<Sun> suns = new ArrayList<>();
+
+    {
+        seedBank.add(new PeashooterSeed());
+        seedBank.add(new SunflowerSeed());
+        seedBank.add(new CherryBombSeed());
+        seedBank.add(new WallNutSeed());
+        seedBank.add(new PotatoMineSeed());
+        seedBank.add(new ChomperSeed());
+        seedBank.add(new RepeaterSeed());
+    }
 
     private final Level level;
     private int sun;

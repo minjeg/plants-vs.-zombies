@@ -9,12 +9,16 @@ public class Pea extends Bullet {
     public Pea(int x) {
         super(x, 1500, 20);
         setCurrentImagePath("images/Bullet/pea.gif");
-        int randomNum = new Random().nextInt(0, 3);
         setSoundPlayer(AudioPlayer
-                .getAudioPlayer(new File(switch (randomNum) {
+                .getAudioPlayer(new File(switch (new Random().nextInt(0, 3)) {
                     case 0 -> "sounds/audio/splat.wav";
                     case 1 -> "sounds/audio/splat2.wav";
                     default -> "sounds/audio/splat3.wav";
+                }), AudioPlayer.NORMAL));
+        setIronShieldHitPlayer(AudioPlayer
+                .getAudioPlayer(new File(switch (new Random().nextInt(0, 2)) {
+                    case 0 -> "sounds/audio/shieldhit.wav";
+                    default -> "sounds/audio/shieldhit2.wav";
                 }), AudioPlayer.NORMAL));
     }
 }

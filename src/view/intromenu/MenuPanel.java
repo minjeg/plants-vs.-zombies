@@ -1,6 +1,8 @@
 package view.intromenu;
 
+import view.PlayFrame;
 import view.ingame.AudioPlayer;
+import view.ingame.DialogPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,6 +14,9 @@ import java.util.TimerTask;
 
 public class MenuPanel extends JPanel implements ActionListener {
     private TitleScreenPanel titleScreen = new TitleScreenPanel(this);
+    private StartGameButton startGameButton = new StartGameButton(this);
+    private ExitConfirmPanel exitConfirmPanel = new ExitConfirmPanel(this);
+//    private PlayFrame frame;
 
     private static final AudioPlayer BGM_PLAYER = AudioPlayer.getAudioPlayer(
             new File("sounds/bgm/CrazyDave (Intro Theme).wav"), AudioPlayer.LOOP);
@@ -22,13 +27,15 @@ public class MenuPanel extends JPanel implements ActionListener {
 
     private int performTimer = 0;
 
-    public MenuPanel(ActionListener l) {
+    public MenuPanel(ActionListener frame) {
         super();
         this.setBounds(0, 0, 835, 635);
         this.setLayout(null);
         this.add(titleScreen);
-        this.add(new StartGameButton(this));
-        this.add(new ExitGameButton(l));
+        this.add(exitConfirmPanel);
+        exitConfirmPanel.setVisible(false);
+        this.add(startGameButton);
+        this.add(new ExitGameButton(this));
         BGM_PLAYER.start();
     }
 
@@ -73,11 +80,16 @@ public class MenuPanel extends JPanel implements ActionListener {
                         performTimer = 0;
                         repaint();
                         source.setEnabled(true);
+                        ((StartGameButton) source).resetDisabledIcon();
                         this.cancel();
                         t.cancel();
                     }
                 }
             }, 0, 20);
+        } else if(source instanceof ExitGameButton) {
+            startGameButton.setEnabled(false);
+            source.setEnabled(false);
+            exitConfirmPanel.setVisible(true);
         }
     }
 }

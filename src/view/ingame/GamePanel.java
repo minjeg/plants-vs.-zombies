@@ -97,16 +97,6 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         this.level = level;
         gameModel = new GameModel(720, 500, 30, level);
 
-        synchronized (gameModel) {
-            gameModel.addSeed(new PeashooterSeed());
-            gameModel.addSeed(new SunflowerSeed());
-            gameModel.addSeed(new WallNutSeed());
-            gameModel.addSeed(new PotatoMineSeed());
-            gameModel.addSeed(new CherryBombSeed());
-//            gameModel.addSeed(new ChomperSeed());
-            gameModel.addSeed(new RepeaterSeed());
-        }
-
         pauseMenu = new PauseMenuPanel(this);
         pauseMenu.setVisible(false);
         this.add(pauseMenu);
@@ -145,7 +135,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         g.drawImage(new ImageIcon("images/SeedBank.png").getImage(),
                 10, 10, null);
         g.drawImage(new ImageIcon("images/ShovelBank.png").getImage(),
-                413, 10, null);
+                466, 10, null);
 
         // 绘制当前阳光数
         g.setFont(STANDARD);
@@ -182,7 +172,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         // 绘制铲子槽里的铲子
         if (!gameModel.isGrabShovel())
             g.drawImage(new ImageIcon("images/Shovel.png").getImage(),
-                    410, 5, null);
+                    463, 5, null);
     }
 
     private void paintShadows(Graphics g) {
@@ -288,6 +278,10 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
             List<Zombie> zombies = gameModel.getZombies(row);
             for (Zombie zombie : zombies) {
                 Image image = new ImageIcon(zombie.getCurrentImagePath()).getImage();
+                if(zombie.isHit()) {
+                    image = brightenImage(image);
+                    zombie.resetHitState();
+                }
                 g.drawImage(image, (int) (deltaX + zombie.getX() - image.getWidth(null) / 2.0),
                         (int) (deltaY + (row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
             }
@@ -421,7 +415,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
             }
             int x_diff = p.x - 85;
             int y_diff = p.y - 15;
-            if (x_diff >= 0 && x_diff <= 318 && y_diff >= 0 && y_diff <= 75) {
+            if (x_diff >= 0 && x_diff <= 371 && y_diff >= 0 && y_diff <= 75) {
                 int i = x_diff / 53;
                 if (i < gameModel.getSeeds().size()) {
                     if (gameModel.getSeeds().get(i).goodToPlant(gameModel)) {
@@ -435,7 +429,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
                         BUZZ_PLAYER.start();
                     }
                 }
-            } else if (x_diff > 318 && x_diff <= 388 && y_diff >= 0 && y_diff <= 72) {
+            } else if (x_diff > 371 && x_diff <= 441 && y_diff >= 0 && y_diff <= 72) {
                 gameModel.setGrabShovel(true);
                 imageFollowMouse = new ImageIcon("images/Shovel.png")
                         .getImage();
@@ -496,10 +490,11 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         JButton source = (JButton) e.getSource();
         if (source instanceof PauseButton) {
             if (gameModel.getState() == GameModel.State.RUNNING) {
-                PAUSE_SOUND_PLAYER.startFrom(0);
+                PAUSE_SOUND_PLAYER.start();
                 gameModel.pauseGame();
                 pauseMenu.setVisible(true);
-                currentBGMPlayer.stop();
+                FAST_BGM_PLAYER.stop();
+                COMMON_BGM_PLAYER.stop();
             }
         } else if (source instanceof BackToGameButton) {
             if (gameModel.getState() == GameModel.State.PAUSED) {
@@ -510,15 +505,6 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         } else if (source instanceof RestartButton) {
             level = new Level(level.getInitialSun(), level.getTotalWave());
             gameModel = new GameModel(720, 500, 30, level);
-            synchronized (gameModel) {
-                gameModel.addSeed(new PeashooterSeed());
-                gameModel.addSeed(new SunflowerSeed());
-                gameModel.addSeed(new WallNutSeed());
-                gameModel.addSeed(new PotatoMineSeed());
-                gameModel.addSeed(new CherryBombSeed());
-//                gameModel.addSeed(new ChomperSeed());
-                gameModel.addSeed(new RepeaterSeed());
-            }
             pauseMenu.setVisible(false);
             currentBGMPlayer = COMMON_BGM_PLAYER;
             currentBGMPlayer.start();

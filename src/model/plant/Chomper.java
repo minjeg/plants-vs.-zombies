@@ -2,11 +2,16 @@ package model.plant;
 
 import model.GameModel;
 import model.zombie.Zombie;
+import view.ingame.AudioPlayer;
 
+import java.io.File;
 import java.util.List;
 
 public class Chomper extends Plant {
     private int timer;
+
+    private AudioPlayer chompPlayer = AudioPlayer.getAudioPlayer(
+            new File("sounds/audio/bigchomp.wav"), AudioPlayer.NORMAL);
 
     public Chomper() {
         super(300, 42000);
@@ -33,6 +38,7 @@ public class Chomper extends Plant {
             timer -= gameModel.getUpdateGap();
             if (timer <= 0) {
                 if (getState() == State.ATTACK) {
+                    chompPlayer.start();
                     List<Zombie> zombies = gameModel.getZombies(row);
                     for (Zombie zombie : zombies) {
                         if (zombie.getX() <= (col + 2) * gameModel.getBlockWidth()) {

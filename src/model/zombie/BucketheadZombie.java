@@ -33,4 +33,8 @@ public class BucketheadZombie extends Zombie {
         } else if (state == State.EATING)
             setCurrentImagePath("images/Zombie/" + s + "/eat.gif");
     }
+
+    public boolean withBucket() {
+        return withBucket;
+    }
 }

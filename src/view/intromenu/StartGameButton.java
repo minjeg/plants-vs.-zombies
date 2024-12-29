@@ -16,11 +16,16 @@ public class StartGameButton extends JButton {
         this.setIcon(icon);
         this.setRolloverIcon(rolloverIcon);
         this.setPressedIcon(rolloverIcon);
+        this.setDisabledIcon(icon);
         this.addActionListener(l);
     }
 
     public void switchIcon() {
         this.setDisabledIcon(disabledIconState ? icon : rolloverIcon);
         disabledIconState ^= true;
+    }
+
+    public void resetDisabledIcon() {
+        this.setDisabledIcon(icon);
     }
 }

@@ -20,7 +20,10 @@ public abstract class Zombie implements Serializable {
 
     private AudioPlayer[] eatSoundPlayer = new AudioPlayer[3];
     private AudioPlayer gulpSoundPlayer;
+    private AudioPlayer[] hitSoundPlayer = new AudioPlayer[3];
     int soundPlayTimer = 0;
+
+    private boolean isHit = false;
 
     {
         eatSoundPlayer[0] = AudioPlayer.getAudioPlayer(
@@ -31,6 +34,12 @@ public abstract class Zombie implements Serializable {
                 new File("sounds/audio/chompsoft.wav"), AudioPlayer.NORMAL);
         gulpSoundPlayer = AudioPlayer.getAudioPlayer(
                 new File("sounds/audio/gulp.wav"), AudioPlayer.NORMAL);
+        hitSoundPlayer[0] = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/splat.wav"), AudioPlayer.NORMAL);
+        hitSoundPlayer[1] = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/splat2.wav"), AudioPlayer.NORMAL);
+        hitSoundPlayer[2] = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/splat3.wav"), AudioPlayer.NORMAL);
     }
 
     public enum State {WALKING, EATING}
@@ -98,6 +107,8 @@ public abstract class Zombie implements Serializable {
 
     public void takeDamage(int damage) {
         health -= damage;
+        playHitSound();
+        if(!isDead()) isHit = true;
     }
 
     public int getDamage() {
@@ -122,5 +133,17 @@ public abstract class Zombie implements Serializable {
 
     protected void setCurrentImagePath(String currentImagePath) {
         this.currentImagePath = currentImagePath;
+    }
+
+    public boolean isHit() {
+        return isHit;
+    }
+
+    public void resetHitState() {
+        isHit = false;
+    }
+
+    protected void playHitSound() {
+        hitSoundPlayer[new Random().nextInt(0, 3)].start();
     }
 }

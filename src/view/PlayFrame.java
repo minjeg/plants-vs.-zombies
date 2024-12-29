@@ -10,7 +10,7 @@ import java.awt.event.ActionListener;
 
 public class PlayFrame extends JFrame implements ActionListener {
 //    private MenuPanel menuPanel = new MenuPanel(this);
-    private GamePanel gamePanel = new GamePanel(new Level(5000, 20));
+    private GamePanel gamePanel = new GamePanel(new Level(50, 20));
 
     public PlayFrame() {
         this.setVisible(true);

@@ -1,9 +1,11 @@
 package model.bullet;
 
 import model.GameModel;
+import model.zombie.BucketheadZombie;
 import model.zombie.Zombie;
 import view.ingame.AudioPlayer;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
@@ -14,6 +16,8 @@ public abstract class Bullet implements Serializable {
     private String currentImagePath;
 
     private AudioPlayer soundPlayer;
+    private AudioPlayer coneHitPlayer;
+    private AudioPlayer ironShieldHitPlayer;
 
     public Bullet(int x, int speed, int damage) {
         this.x = x;
@@ -34,7 +38,11 @@ public abstract class Bullet implements Serializable {
             if (Math.abs(zombie.getX() - this.getX()) < 10) {
                 zombie.takeDamage(this.getDamage());
                 gameModel.getBullets(row).remove(index);
-                soundPlayer.start();
+                if(zombie instanceof BucketheadZombie
+                        && ((BucketheadZombie) zombie).withBucket())
+                    ironShieldHitPlayer.start();
+                else
+                    soundPlayer.start();
                 return true;
             }
         }
@@ -61,5 +69,13 @@ public abstract class Bullet implements Serializable {
 
     public void setSoundPlayer(AudioPlayer soundPlayer) {
         this.soundPlayer = soundPlayer;
+    }
+
+    public void setConeHitPlayer(AudioPlayer coneHitPlayer) {
+        this.coneHitPlayer = coneHitPlayer;
+    }
+
+    public void setIronShieldHitPlayer(AudioPlayer ironShieldHitPlayer) {
+        this.ironShieldHitPlayer = ironShieldHitPlayer;
     }
 }
