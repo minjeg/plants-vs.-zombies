@@ -9,8 +9,7 @@ public class IntroButton extends JButton {
         this.setContentAreaFilled(false);
         this.setBorderPainted(false);
         this.setIcon(new ImageIcon("images/Buttons/IntroButton.png"));
-        this.setRolloverIcon(new ImageIcon("images/Buttons/IntroButton_selected.png"));
-        this.setPressedIcon(new ImageIcon("images/Buttons/IntroButton_selected.png"));
+        this.setRolloverIcon(new ImageIcon("images/Buttons/IntroButton_rollover.png"));
         this.addActionListener(l);
     }
 }

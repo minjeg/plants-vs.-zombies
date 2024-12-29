@@ -2,10 +2,16 @@ package view;
 
 import model.Level;
 import view.ingame.MainPanel;
+import view.intromenu.ExitGameButton;
+import view.intromenu.MenuPanel;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class PlayFrame extends JFrame {
+public class PlayFrame extends JFrame implements ActionListener {
+    private MenuPanel menuPanel = new MenuPanel(this);
+    private MainPanel mainPanel = new MainPanel(new Level(50, 20));
 
     public PlayFrame() {
         this.setVisible(true);
@@ -18,6 +24,15 @@ public class PlayFrame extends JFrame {
         this.setLayout(null);
         this.setResizable(false);
 
-        this.add(new MainPanel(new Level(50, 20)));
+//        this.add(menuPanel);
+        this.add(mainPanel);
+//        mainPanel.setVisible(false);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        JButton source = (JButton) e.getSource();
+        if(source instanceof ExitGameButton)
+            System.exit(0);
     }
 }

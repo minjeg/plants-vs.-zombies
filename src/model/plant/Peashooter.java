@@ -32,7 +32,7 @@ public class Peashooter extends Plant {
             if (gameModel.getZombies(row).isEmpty()) {
                 setState(State.IDLE);
             } else if (timer >= getPerformGap()) {
-                shootPlayer.start();
+//                shootPlayer.start();
                 gameModel.addBullet(row, new Pea((col + 1) * gameModel.getWidth() / gameModel.getCols()));
                 timer -= getPerformGap();
             }

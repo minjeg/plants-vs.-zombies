@@ -12,6 +12,7 @@ import model.zombie.Zombie;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.List;
 import java.util.Random;
@@ -216,7 +217,38 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         }
     }
 
-    public void paintPlants(Graphics g) {
+    private Image brightenImage(Image image) {
+        BufferedImage ret =
+                new BufferedImage(image.getWidth(null),
+                        image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = ret.createGraphics();
+        g2d.drawImage(image, 0, 0, null);
+        g2d.dispose();
+
+        for(int x = 0; x < ret.getWidth(); x++) {
+            for(int y = 0; y < ret.getHeight(null); y++) {
+                int rgb = ret.getRGB(x, y);
+                int alpha = (rgb >> 24) & 0xff;
+                int newRgb = rgb;
+                if(alpha != 0) {
+                    int r = (rgb >> 16) & 0xff;
+                    int g = (rgb >> 8) & 0xff;
+                    int b = rgb & 0xff;
+
+                    r = Math.min(255, r + 50);
+                    g = Math.min(255, g + 50);
+                    b = Math.min(255, b + 50);
+
+                    newRgb = (alpha << 24) | (r << 16) | (g << 8) | b;
+                }
+                ret.setRGB(x, y, newRgb);
+            }
+        }
+
+        return ret;
+    }
+
+    private void paintPlants(Graphics g) {
         int blockWidth = gameModel.getBlockWidth();
         int blockHeight = gameModel.getBlockHeight();
 
@@ -236,6 +268,8 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                     }
                 } else {
                     image = new ImageIcon(plant.getCurrentImagePath()).getImage();
+                    if(gameModel.isGrabShovel() && gameModel.getRow(mousePos) == row && gameModel.getCol(mousePos) == col)
+                        image = brightenImage(image);
                 }
                 g2d.drawImage(image, (int) (deltaX + (col + 0.5) * blockWidth - image.getWidth(null) / 2.0),
                         (int) (deltaY + (row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
@@ -244,7 +278,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         }
     }
 
-    public void paintZombies(Graphics g) {
+    private void paintZombies(Graphics g) {
         int blockHeight = gameModel.getBlockHeight();
 
         //绘制僵尸
@@ -258,7 +292,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         }
     }
 
-    public void paintBullets(Graphics g) {
+    private void paintBullets(Graphics g) {
         int blockHeight = gameModel.getBlockHeight();
 
         //绘制子弹
@@ -272,7 +306,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         }
     }
 
-    public void paintLawnMowers(Graphics g) {
+    private void paintLawnMowers(Graphics g) {
         int blockHeight = gameModel.getBlockHeight();
 
         //绘制割草机
@@ -286,7 +320,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         }
     }
 
-    public void paintLoadBar(Graphics g) {
+    private void paintLoadBar(Graphics g) {
         double rate = (double) level.getCurrentWave() / level.getTotalWave();
         g.drawImage(new ImageIcon("images/Panels/FlagMeter_Empty.png").getImage(),
                 600, 575, 758, 602, 0, 0, 158, 27, null);
@@ -301,12 +335,14 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
                     607 + (int) (145 * (1 - i / level.getTotalWave())),
                     (level.getCurrentWave() >= i ? 566 : 575), null);
         }
+        g.drawImage(new ImageIcon("images/Panels/FlagMeterLevelProgress.png").getImage(),
+                640, 588, null);
         g.drawImage(new ImageIcon("images/Panels/FlagMeterParts_Head.png").getImage(),
                 600 + (int) (145 * (1 - (double) level.getCurrentWave() / level.getTotalWave())),
                 575, null);
     }
 
-    public void paintSun(Graphics g) {
+    private void paintSun(Graphics g) {
         for (Sun sun : gameModel.getSuns()) {
             Image image = new ImageIcon(sun.getCurrentImagePath()).getImage();
             g.drawImage(image, (int) (deltaX / 2.0 + sun.getX() - image.getWidth(null) / 2.0),
@@ -406,7 +442,7 @@ public class MainPanel extends JPanel implements MouseListener, MouseMotionListe
         } else if (gameModel.isGrabShovel()) {
             int row = gameModel.getRow(mousePos);
             int col = gameModel.getCol(mousePos);
-            if (row != -1 && col != -1) {
+            if (row != -1 && col != -1 && gameModel.getPlant(row, col) != null) {
                 gameModel.setPlant(row, col, null);
                 PLANT_PLAYER[0].start();
             } else {

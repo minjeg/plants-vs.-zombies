@@ -2,11 +2,15 @@ package model.plant;
 
 import model.GameModel;
 import model.zombie.Zombie;
+import view.ingame.AudioPlayer;
 
+import java.io.File;
 import java.util.List;
 
 public class CherryBomb extends Plant {
     private int timer;
+    private AudioPlayer explodePlayer = AudioPlayer.getAudioPlayer(
+            new File("sounds/audio/cherrybomb.wav"), AudioPlayer.NORMAL);
 
     public CherryBomb() {
         super(300, 1000);
@@ -24,6 +28,7 @@ public class CherryBomb extends Plant {
         if (timer <= 0) {
             if (getState() == State.EXPLODING) {
                 setState(State.EXPLODE);
+                explodePlayer.start();
                 timer = 1000;
                 int upper = Math.min(row + 1, gameModel.getRows() - 1);
                 for (int i = Math.max(row - 1, 0); i <= upper; ++i) {

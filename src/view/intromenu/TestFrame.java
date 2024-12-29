@@ -1,8 +1,10 @@
 package view.intromenu;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class TestFrame extends JFrame {
+public class TestFrame extends JFrame implements ActionListener {
     public TestFrame() {
         this.setVisible(true);
         this.setTitle("Plants vs. Zombies");
@@ -14,6 +16,11 @@ public class TestFrame extends JFrame {
         this.setLayout(null);
         this.setResizable(false);
 
-        this.add(new MenuPanel());
+        this.add(new MenuPanel(this));
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        this.dispose();
     }
 }
