@@ -8,6 +8,8 @@ import java.awt.event.ActionListener;
 public class ExitConfirmPanel extends DialogPanel {
     public ExitConfirmPanel(ActionListener l) {
         super(l);
+        this.add(new ExitConfirmButton(l));
+        this.add(new ExitCancelButton(l));
     }
 
     @Override

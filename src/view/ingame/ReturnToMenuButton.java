@@ -10,6 +10,7 @@ public class ReturnToMenuButton extends JButton {
         this.setContentAreaFilled(false);
         this.setIcon(new ImageIcon("images/Buttons/ReturnToMenuButton.png"));
         this.setPressedIcon(new ImageIcon("images/Buttons/ReturnToMenuButton_down.png"));
+        this.setDisabledIcon(new ImageIcon("images/Buttons/ReturnToMenuButton.png"));
         this.addActionListener(l);
     }
 }

@@ -8,6 +8,7 @@ import model.bullet.Bullet;
 import model.plant.Plant;
 import model.seed.*;
 import model.zombie.Zombie;
+import view.PlayFrame;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,6 +29,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
     private final int deltaX = 60, deltaY = 60;
 
     private PauseMenuPanel pauseMenu;
+    private BackToMenuDialog backToMenuDialog;
     private Level level;
 
     private static final AudioPlayer COMMON_BGM_PLAYER;
@@ -41,6 +43,11 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
     private static final AudioPlayer BUZZ_PLAYER;
     private static final AudioPlayer SHOVEL_PLAYER;
     private static final AudioPlayer[] TAP_PLAYER = new AudioPlayer[2];
+
+    private PlayFrame frame;
+
+    private int state = WAIT;
+    public static final int WAIT = 0, READY = 1, START = 2;
 
     private static final Font STANDARD = new Font("Standard", Font.PLAIN, 15);
 
@@ -85,8 +92,9 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
 
     private int previousWave = 0;
 
-    public GamePanel(Level level) {
+    public GamePanel(PlayFrame frame, Level level) {
         super(true);
+        this.frame = frame;
         this.setBounds(0, 0, 835, 635);
         this.setLayout(null);
         this.addMouseListener(this);
@@ -97,14 +105,18 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         this.level = level;
         gameModel = new GameModel(720, 500, 30, level);
 
+        backToMenuDialog = new BackToMenuDialog(this);
+        backToMenuDialog.setVisible(false);
+        this.add(backToMenuDialog);
         pauseMenu = new PauseMenuPanel(this);
         pauseMenu.setVisible(false);
         this.add(pauseMenu);
 
         currentBGMPlayer = COMMON_BGM_PLAYER;
-        currentBGMPlayer.start();
+        setState(WAIT);
 
         Timer timer = new Timer();
+
 
         timer.schedule(new TimerTask() {
             @Override
@@ -152,8 +164,11 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
             g.drawImage(new ImageIcon(seed.getImagePath()).getImage(),
                     85 + i * 53, 15, null);
 
-
-            if (!seed.goodToPlant(gameModel)) {
+            if (state != START || gameModel.getSeedInHand() == seed) {
+                g.setColor(new Color(0, 0, 0, 128));
+                g.fillRect(85 + i * 53, 15, 53, 75);
+                g.setColor(null);
+            } else if (!seed.goodToPlant(gameModel)) {
                 g.setColor(new Color(128, 128, 128, 128));
                 g.fillRect(85 + i * 53, 15, 53, 75);
                 if (seed.getCoolDown() != 0) {
@@ -162,10 +177,6 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
                             53, (int) (75 * seed.getCoolDown()));
                     g.setColor(null);
                 }
-            } else if (gameModel.getSeedInHand() == seed) {
-                g.setColor(new Color(0, 0, 0, 128));
-                g.fillRect(85 + i * 53, 15, 53, 75);
-                g.setColor(null);
             }
         }
 
@@ -507,7 +518,36 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
             gameModel = new GameModel(720, 500, 30, level);
             pauseMenu.setVisible(false);
             currentBGMPlayer = COMMON_BGM_PLAYER;
+            this.setState(READY);
+        } else if(source instanceof ReturnToMenuButton) {
+            backToMenuDialog.setVisible(true);
+            pauseMenu.disableAll();
+        } else if(source instanceof BackToMenuCancelButton) {
+            backToMenuDialog.setVisible(false);
+            pauseMenu.enableAll();
+        } else if(source instanceof BackToMenuConfirmButton) {
+            this.setState(WAIT);
+            this.setVisible(false);
+            frame.returnToMenu();
+        }
+    }
+
+    public void setState(int state) {
+        this.state = state;
+        if(state == WAIT) {
+            COMMON_BGM_PLAYER.stop();
+            FAST_BGM_PLAYER.stop();
+            gameModel.setState(GameModel.State.READY);
+            this.setVisible(false);
+        } else if(state == READY) {
+            pauseMenu.enableAll();
+            pauseMenu.setVisible(false);
+            backToMenuDialog.setVisible(false);
+            this.setVisible(true);
+            setState(START);
+        } else if(state == START) {
             currentBGMPlayer.start();
+            gameModel.setState(GameModel.State.RUNNING);
         }
     }
 }

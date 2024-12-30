@@ -3,14 +3,15 @@ package view;
 import model.Level;
 import view.ingame.GamePanel;
 import view.intromenu.ExitGameButton;
+import view.intromenu.MenuPanel;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class PlayFrame extends JFrame implements ActionListener {
-//    private MenuPanel menuPanel = new MenuPanel(this);
-    private GamePanel gamePanel = new GamePanel(new Level(50, 20));
+public class PlayFrame extends JFrame {
+    private MenuPanel menuPanel = new MenuPanel(this);
+    private GamePanel gamePanel = new GamePanel(this, new Level(50, 20));
 
     public PlayFrame() {
         this.setVisible(true);
@@ -23,15 +24,16 @@ public class PlayFrame extends JFrame implements ActionListener {
         this.setLayout(null);
         this.setResizable(false);
 
-//        this.add(menuPanel);
+        this.add(menuPanel);
         this.add(gamePanel);
-//        mainPanel.setVisible(false);
+        gamePanel.setVisible(false);
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        JButton source = (JButton) e.getSource();
-        if(source instanceof ExitGameButton)
-            System.exit(0);
+    public void startPlay() {
+        gamePanel.setState(GamePanel.READY);
+    }
+
+    public void returnToMenu() {
+        menuPanel.setState(MenuPanel.NORMAL);
     }
 }

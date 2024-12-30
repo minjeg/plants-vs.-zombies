@@ -14,7 +14,7 @@ public class ExitGameButton extends JButton {
         this.setIcon(icon);
         this.setRolloverIcon(rolloverIcon);
         this.setPressedIcon(rolloverIcon);
-        this.setDisabledIcon(rolloverIcon);
+        this.setDisabledIcon(icon);
         this.addActionListener(l);
     }
 }

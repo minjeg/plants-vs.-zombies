@@ -35,7 +35,7 @@ public class GameModel implements Serializable {
     private long sunTimer = (long) (4250 + Math.random() * 2740);
     private int totalZombieHealth;
     private final int updateGap;
-    private State state = State.RUNNING;
+    private State state = State.READY;
 
     private final int rows, cols;
     private final int width, height;
@@ -44,7 +44,7 @@ public class GameModel implements Serializable {
     private boolean grabShovel = false;
     private PlantSeed seedInHand = null;
 
-    public enum State {PAUSED, RUNNING, WIN, LOSE}
+    public enum State {READY, PAUSED, RUNNING, WIN, LOSE}
 
     public GameModel(int width, int height, int updateGap, Level level) {
         this.width = width;

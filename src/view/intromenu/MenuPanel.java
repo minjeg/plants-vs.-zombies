@@ -2,7 +2,6 @@ package view.intromenu;
 
 import view.PlayFrame;
 import view.ingame.AudioPlayer;
-import view.ingame.DialogPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,8 +14,13 @@ import java.util.TimerTask;
 public class MenuPanel extends JPanel implements ActionListener {
     private TitleScreenPanel titleScreen = new TitleScreenPanel(this);
     private StartGameButton startGameButton = new StartGameButton(this);
+    private ExitGameButton exitGameButton = new ExitGameButton(this);
     private ExitConfirmPanel exitConfirmPanel = new ExitConfirmPanel(this);
-//    private PlayFrame frame;
+    private PlayFrame frame;
+
+    private int state;
+
+    public static final int NORMAL = 0, READY_TO_PLAY = 1, READY_TO_EXIT = 2, START_PLAY = 3;
 
     private static final AudioPlayer BGM_PLAYER = AudioPlayer.getAudioPlayer(
             new File("sounds/bgm/CrazyDave (Intro Theme).wav"), AudioPlayer.LOOP);
@@ -27,23 +31,23 @@ public class MenuPanel extends JPanel implements ActionListener {
 
     private int performTimer = 0;
 
-    public MenuPanel(ActionListener frame) {
+    public MenuPanel(PlayFrame frame) {
         super();
+        this.frame = frame;
         this.setBounds(0, 0, 835, 635);
         this.setLayout(null);
         this.add(titleScreen);
         this.add(exitConfirmPanel);
-        exitConfirmPanel.setVisible(false);
         this.add(startGameButton);
-        this.add(new ExitGameButton(this));
-        BGM_PLAYER.start();
+        this.add(exitGameButton);
+        setState(NORMAL);
     }
 
     @Override
     public void paintComponent(Graphics g) {
         g.drawImage(new ImageIcon("images/Panels/MainMenu.png").getImage(),
                 0, 0, 835, 635, null);
-        if(performTimer > 0 && performTimer < 5500) {
+        if(performTimer > 0 && performTimer < 3500) {
             Image zombieHandImage;
             if(performTimer < 1400)
                 zombieHandImage =
@@ -63,8 +67,30 @@ public class MenuPanel extends JPanel implements ActionListener {
             titleScreen.setVisible(false);
             source.setVisible(false);
         } else if(source instanceof StartGameButton) {
-            source.setEnabled(false);
+            setState(READY_TO_PLAY);
+        } else if(source instanceof ExitGameButton) {
+            setState(READY_TO_EXIT);
+        } else if(source instanceof ExitConfirmButton) {
+            System.exit(0);
+        } else if(source instanceof ExitCancelButton) {
+            setState(NORMAL);
+        }
+    }
+
+    public void setState(int state) {
+        this.state = state;
+        if(state == NORMAL) {
+            this.setVisible(true);
+            if(BGM_PLAYER.isStoped())
+                BGM_PLAYER.start();
+            startGameButton.setEnabled(true);
+            exitGameButton.setEnabled(true);
+            exitConfirmPanel.setVisible(false);
+        } else if(state == READY_TO_PLAY) {
             BGM_PLAYER.stop();
+            startGameButton.setEnabled(false);
+            exitGameButton.setEnabled(false);
+            exitConfirmPanel.setVisible(false);
             START_GAME_PLAYER.start();
             EVIL_LAUGH_PLAYER.start();
             java.util.Timer t = new Timer();
@@ -74,22 +100,24 @@ public class MenuPanel extends JPanel implements ActionListener {
                     performTimer += 20;
                     repaint();
                     if(performTimer % 80 == 0) {
-                        ((StartGameButton) source).switchIcon();
+                        startGameButton.switchIcon();
                     }
-                    if(performTimer >= 5500) {
+                    if(performTimer >= 3500) {
                         performTimer = 0;
-                        repaint();
-                        source.setEnabled(true);
-                        ((StartGameButton) source).resetDisabledIcon();
+                        startGameButton.resetDisabledIcon();
+                        setState(START_PLAY);
                         this.cancel();
                         t.cancel();
                     }
                 }
             }, 0, 20);
-        } else if(source instanceof ExitGameButton) {
+        } else if(state == READY_TO_EXIT) {
             startGameButton.setEnabled(false);
-            source.setEnabled(false);
+            exitGameButton.setEnabled(false);
             exitConfirmPanel.setVisible(true);
+        } else if(state == START_PLAY) {
+            this.setVisible(false);
+            frame.startPlay();
         }
     }
 }

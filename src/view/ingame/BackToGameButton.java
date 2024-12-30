@@ -11,6 +11,7 @@ public class BackToGameButton extends JButton {
         this.setBounds(110, 460, 355, 100);
         this.setIcon(new ImageIcon("images/Buttons/BackToGameButton.png"));
         this.setPressedIcon(new ImageIcon("images/Buttons/BackToGameButton_down.png"));
+        this.setDisabledIcon(new ImageIcon("images/Buttons/BackToGameButton.png"));
         this.addActionListener(l);
     }
 }

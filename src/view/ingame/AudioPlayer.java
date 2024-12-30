@@ -54,4 +54,8 @@ public class AudioPlayer {
     public int getCurrentFrame() {
         return audioClip.getFramePosition();
     }
+
+    public boolean isStoped() {
+        return !audioClip.isRunning();
+    }
 }

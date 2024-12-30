@@ -10,6 +10,7 @@ public class RestartButton extends JButton {
         this.setContentAreaFilled(false);
         this.setIcon(new ImageIcon("images/Buttons/RestartButton.png"));
         this.setPressedIcon(new ImageIcon("images/Buttons/RestartButton_down.png"));
+        this.setDisabledIcon(new ImageIcon("images/Buttons/RestartButton.png"));
         this.addActionListener(l);
     }
 }
