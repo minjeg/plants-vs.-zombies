@@ -55,7 +55,7 @@ public abstract class Zombie implements Serializable {
         }
         if (state == State.WALKING) {
             if (x == defaultX)
-                x = gameModel.getWidth();
+                x = gameModel.getWidth() * (1 + Math.random() / 10);
             x -= 1.0 * gameModel.getUpdateGap() * gameModel.getWidth() / speed;
         }
         int col = getClosestColumn(gameModel);
@@ -71,7 +71,7 @@ public abstract class Zombie implements Serializable {
             }
         }
         //根据僵尸状态、前方是否有植物进行数据、状态更新
-        if(health <= 0)
+        if (health <= 0)
             setState(State.DEAD);
         Plant plant = gameModel.getPlant(row, col);
         if (state == State.WALKING && plant != null
@@ -83,7 +83,7 @@ public abstract class Zombie implements Serializable {
             else {
                 plant.takeDamage(gameModel.getUpdateGap() * getDamage() / 1000);
                 soundPlayTimer += 20;
-                if(soundPlayTimer == 1000) {
+                if (soundPlayTimer == 1000) {
                     eatSoundPlayer[new Random().nextInt(0, 3)].start();
                     soundPlayTimer = 0;
                 }
@@ -92,9 +92,9 @@ public abstract class Zombie implements Serializable {
                     setState(State.WALKING);
                 }
             }
-        } else if(isDead()) {
+        } else if (isDead()) {
             deadAnimationPlayTimer += 30;
-            if(deadAnimationPlayTimer >= 2200)
+            if (deadAnimationPlayTimer >= 2200)
                 setState(State.TOTALLY_DEAD);
         }
         return false;
@@ -110,7 +110,7 @@ public abstract class Zombie implements Serializable {
 
     public void takeDamage(int damage) {
         health -= damage;
-        if(!isDead()) isHit = true;
+        if (!isDead()) isHit = true;
     }
 
     public int getDamage() {

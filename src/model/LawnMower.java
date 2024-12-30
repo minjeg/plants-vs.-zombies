@@ -24,7 +24,7 @@ public class LawnMower implements Serializable {
     }
 
     public void update(GameModel gameModel, int row) {
-        if (x > gameModel.getWidth())
+        if (x > gameModel.getWidth() * 1.1)
             gameModel.setLawnMower(row, null);
         else if (state == State.ON) {
             x += 1.0 * gameModel.getUpdateGap() * gameModel.getWidth() / speed;

@@ -36,17 +36,17 @@ public class Repeater extends Plant {
             setState(State.SHOOTING);
             timer = getPerformGap();
         } else if (getState() == State.SHOOTING) {
-            timer += gameModel.getUpdateGap();
+            timer -= gameModel.getUpdateGap();
             if (gameModel.getZombies(row).isEmpty()) {
                 setState(State.IDLE);
-            } else if (timer >= getPerformGap()) {
+            } else if (timer <= 0) {
                 shootPlayer[new Random().nextInt(0, 2)].start();
                 gameModel.addBullet(row, new Pea((col + 1) * gameModel.getWidth() / gameModel.getCols()));
                 if (flag) {
-                    timer -= getPerformGap() - 100;
+                    timer = getPerformGap() - 100;
                     flag = false;
                 } else {
-                    timer = getPerformGap() - 100;
+                    timer = 100;
                     flag = true;
                 }
             }

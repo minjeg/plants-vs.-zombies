@@ -34,6 +34,7 @@ public class GameModel implements Serializable {
     private int fallenSunNumber = 0;
     private long sunTimer = (long) (4250 + Math.random() * 2740);
     private int totalZombieHealth;
+    private int numOfZombies;
     private final int updateGap;
     private State state = State.READY;
 
@@ -148,6 +149,7 @@ public class GameModel implements Serializable {
         });
         sunThread.start();
         //僵尸更新
+        numOfZombies = 0;
         totalZombieHealth = 0;
         for (int row = 0; row < rows; ++row) {
             List<Zombie> rowZombies = zombies.get(row);
@@ -155,8 +157,10 @@ public class GameModel implements Serializable {
                 Zombie zombie = rowZombies.get(index);
                 if (zombie.update(this, row, index))
                     --index;
-                else
+                else {
+                    ++numOfZombies;
                     totalZombieHealth += zombie.getHealth();
+                }
             }
         }
         //关卡更新
@@ -207,6 +211,8 @@ public class GameModel implements Serializable {
     }
 
     public Plant getPlant(int row, int col) {
+        if (col >= cols)
+            return null;
         return plants.get(row).get(col);
     }
 
@@ -307,13 +313,7 @@ public class GameModel implements Serializable {
         return seedBank;
     }
 
-    public void addSeed(PlantSeed seed) {
-        seedBank.add(seed);
-    }
-
     public int getNumOfZombies() {
-        int ret = 0;
-        for (var e : zombies) ret += e.size();
-        return ret;
+        return numOfZombies;
     }
 }
