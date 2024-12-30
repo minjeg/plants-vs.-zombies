@@ -42,7 +42,7 @@ public class Chomper extends Plant {
                     List<Zombie> zombies = gameModel.getZombies(row);
                     for (Zombie zombie : zombies) {
                         if (zombie.getX() <= (col + 2) * gameModel.getBlockWidth()) {
-                            zombie.takeDamage(zombie.getHealth());
+                            zombie.setState(Zombie.State.TOTALLY_DEAD);
                             setState(State.CHEW);
                             timer = getPerformGap() - 2000;
                             break;
@@ -71,5 +71,15 @@ public class Chomper extends Plant {
             setCurrentImagePath("images/Plant/Chomper/chew.gif");
         else if (state == State.SWALLOW)
             setCurrentImagePath("images/Plant/Chomper/swallow.gif");
+    }
+
+    @Override
+    public int getImageX(int col) {
+        return super.getImageX(col) + 20;
+    }
+
+    @Override
+    public int getImageY(int row) {
+        return super.getImageY(row) - 20;
     }
 }

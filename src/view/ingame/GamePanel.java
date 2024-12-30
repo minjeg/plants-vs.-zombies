@@ -5,6 +5,7 @@ import model.LawnMower;
 import model.Level;
 import model.Sun;
 import model.bullet.Bullet;
+import model.plant.CherryBomb;
 import model.plant.Plant;
 import model.seed.*;
 import model.zombie.Zombie;
@@ -43,11 +44,16 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
     private static final AudioPlayer BUZZ_PLAYER;
     private static final AudioPlayer SHOVEL_PLAYER;
     private static final AudioPlayer[] TAP_PLAYER = new AudioPlayer[2];
+    private static final AudioPlayer READY_SET_PLANT_PLAYER;
+    private static final AudioPlayer HUGE_WAVE_APPROACHING_PLAYER;
+    private static final AudioPlayer FINAL_WAVE_APPROACHING_PLAYER;
 
     private PlayFrame frame;
 
     private int state = WAIT;
     public static final int WAIT = 0, READY = 1, START = 2;
+
+    int readyTimer = 0;
 
     private static final Font STANDARD = new Font("Standard", Font.PLAIN, 15);
 
@@ -88,6 +94,12 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         TAP_PLAYER[1] = AudioPlayer.getAudioPlayer(
                 new File("sounds/audio/tap2.wav"),
                 AudioPlayer.NORMAL);
+        READY_SET_PLANT_PLAYER = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/readysetplant.wav"), AudioPlayer.NORMAL);
+        HUGE_WAVE_APPROACHING_PLAYER = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/hugewave.wav"), AudioPlayer.NORMAL);
+        FINAL_WAVE_APPROACHING_PLAYER = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/finalwave.wav"), AudioPlayer.NORMAL);
     }
 
     private int previousWave = 0;
@@ -121,6 +133,14 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
+                if(state == READY) {
+                    readyTimer += gameModel.getUpdateGap();
+                    if(readyTimer >= 2400) {
+                        setState(START);
+                        readyTimer = 0;
+                    }
+                    repaint();
+                }
                 if (gameModel.getState() == GameModel.State.RUNNING) {
                     synchronized (gameModel) {
                         repaint();
@@ -193,20 +213,19 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         for (int row = 0; row < gameModel.getRows(); row++) {
             for (int col = 0; col < gameModel.getCols(); col++) {
                 Plant plant = gameModel.getPlant(row, col);
-                if (plant == null)
+                if (plant == null || plant.getState() == Plant.State.EXPLODING)
                     continue;
                 Image image = new ImageIcon("images/shadow.png").getImage();
-                g.drawImage(image, (int) (deltaX + (col + 0.5) * blockWidth - image.getWidth(null) / 2.0),
-                        (int) (deltaY + (row + 0.5) * blockHeight + image.getHeight(null) / 2.0), null);
+                g.drawImage(image, plant.getShadeX(col), plant.getShadeY(row), null);
             }
         }
         // 绘制僵尸底下的影子
         for (int row = 0; row < gameModel.getRows(); row++) {
             List<Zombie> zombies = gameModel.getZombies(row);
             for (Zombie zombie : zombies) {
+                if(zombie.isDead()) continue;
                 Image image = new ImageIcon("images/shadow.png").getImage();
-                g.drawImage(image, (int) (deltaX + zombie.getX() - image.getWidth(null) / 2.0),
-                        (int) (deltaY + (row + 0.5) * blockHeight + image.getHeight(null) / 2.0), null);
+                g.drawImage(image, zombie.getShadeX(), zombie.getShadeY(row), null);
             }
         }
         // 绘制子弹下方的影子
@@ -252,9 +271,6 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
     }
 
     private void paintPlants(Graphics g) {
-        int blockWidth = gameModel.getBlockWidth();
-        int blockHeight = gameModel.getBlockHeight();
-
         Graphics2D g2d = (Graphics2D) g;
 
         for (int row = 0; row < gameModel.getRows(); row++) {
@@ -265,6 +281,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
                     PlantSeed seedInHand = gameModel.getSeedInHand();
                     if (seedInHand != null && gameModel.getRow(mousePos) == row && gameModel.getCol(mousePos) == col) {
                         image = new ImageIcon(seedInHand.getPlant().getCurrentImagePath()).getImage();
+                        plant = seedInHand.getPlant();
                         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
                     } else {
                         continue;
@@ -274,8 +291,8 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
                     if(gameModel.isGrabShovel() && gameModel.getRow(mousePos) == row && gameModel.getCol(mousePos) == col)
                         image = brightenImage(image);
                 }
-                g2d.drawImage(image, (int) (deltaX + (col + 0.5) * blockWidth - image.getWidth(null) / 2.0),
-                        (int) (deltaY + (row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
+                if(image != null)
+                    g2d.drawImage(image, plant.getImageX(col), plant.getImageY(row), null);
                 g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
             }
         }
@@ -293,8 +310,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
                     image = brightenImage(image);
                     zombie.resetHitState();
                 }
-                g.drawImage(image, (int) (deltaX + zombie.getX() - image.getWidth(null) / 2.0),
-                        (int) (deltaY + (row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
+                g.drawImage(image, zombie.getImageX(), zombie.getImageY(row), null);
             }
         }
     }
@@ -362,7 +378,8 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         super.paintComponent(g);
 
         paintBackground(g);
-        paintBanks(g);
+        if(gameModel.getState() != GameModel.State.LOSE)
+            paintBanks(g);
         paintShadows(g);
         paintPlants(g);
         paintZombies(g);
@@ -376,6 +393,18 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
             g.drawImage(imageFollowMouse,
                     mousePos.x - imageFollowMouse.getWidth(null) / 2,
                     mousePos.y - imageFollowMouse.getHeight(null) / 2, null);
+
+        if(state == READY) {
+            if(readyTimer <= 600)
+                g.drawImage(new ImageIcon("images/ready1.png").getImage(),
+                        300, 200, null);
+            else if(readyTimer <= 1200)
+                g.drawImage(new ImageIcon("images/ready2.png").getImage(),
+                        300, 200, null);
+            else if(readyTimer <= 1800)
+                g.drawImage(new ImageIcon("images/ready3.png").getImage(),
+                        200, 200, null);
+        }
 
         // 根据僵尸数量切换bgm
         int numOfZombies = gameModel.getNumOfZombies();
@@ -408,8 +437,8 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
     public void mousePressed(MouseEvent e) {
         Point p = e.getPoint();
         mousePos = e.getPoint();
-        if (gameModel.getState() == GameModel.State.LOSE ||
-                gameModel.getState() == GameModel.State.PAUSED)
+        if (gameModel.getState() != GameModel.State.RUNNING &&
+                gameModel.getState() != GameModel.State.WIN)
             return;
         if (!gameModel.isGrabShovel() && gameModel.getSeedInHand() == null) {
             List<Sun> sunList = gameModel.getSuns();
@@ -544,7 +573,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
             pauseMenu.setVisible(false);
             backToMenuDialog.setVisible(false);
             this.setVisible(true);
-            setState(START);
+            READY_SET_PLANT_PLAYER.start();
         } else if(state == START) {
             currentBGMPlayer.start();
             gameModel.setState(GameModel.State.RUNNING);

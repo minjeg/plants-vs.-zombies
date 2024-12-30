@@ -19,4 +19,9 @@ public class WallNut extends Plant {
         else if (getHealth() < 2666)
             setCurrentImagePath("images/Plant/Wall-Nut/break1.gif");
     }
+
+    @Override
+    public int getImageY(int row) {
+        return super.getImageY(row) + 5;
+    }
 }

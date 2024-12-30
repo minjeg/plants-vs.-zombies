@@ -2,6 +2,7 @@ package model.plant;
 
 import model.GameModel;
 
+import javax.swing.*;
 import java.io.Serializable;
 
 public abstract class Plant implements Serializable {
@@ -49,5 +50,23 @@ public abstract class Plant implements Serializable {
 
     protected void setCurrentImagePath(String currentImagePath) {
         this.currentImagePath = currentImagePath;
+    }
+
+    public int getImageX(int col) {
+        return (int) (60 + (col + 0.5) * 80
+                - new ImageIcon(currentImagePath).getImage().getWidth(null) / 2.0);
+    }
+
+    public int getImageY(int row) {
+        return (int) (60 + (row + 0.5) * 100
+                - new ImageIcon(currentImagePath).getImage().getHeight(null) / 2.0);
+    }
+
+    public int getShadeX(int col) {
+        return (int) (60 + (col + 0.5) * 80 - 43);
+    }
+
+    public int getShadeY(int row) {
+        return (int) (60 + (row + 0.5) * 100 + 18);
     }
 }

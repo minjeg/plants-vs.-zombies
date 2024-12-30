@@ -54,4 +54,14 @@ public class Peashooter extends Plant {
         else
             setCurrentImagePath("images/Plant/Peashooter/shooting.gif");
     }
+
+    @Override
+    public int getImageX(int col) {
+        return super.getImageX(col) + 5;
+    }
+
+    @Override
+    public int getImageY(int row) {
+        return super.getImageY(row) - 10;
+    }
 }

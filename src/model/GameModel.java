@@ -135,7 +135,7 @@ public class GameModel implements Serializable {
         //太阳更新
         Thread sunThread = new Thread(() -> {
             sunTimer -= updateGap;
-            if (sunTimer <= 0) {
+            if (state == State.RUNNING && sunTimer <= 0) {
                 addSun(new Sun(GameModel.this));
                 ++fallenSunNumber;
                 sunTimer = (long) (Math.min(100L * fallenSunNumber + 4250, 9500) + Math.random() * 2740);

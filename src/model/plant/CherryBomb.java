@@ -36,7 +36,7 @@ public class CherryBomb extends Plant {
                     for (Zombie zombie : rowZombies) {
                         int j = zombie.getClosestColumn(gameModel);
                         if (j >= col - 1 && j <= col + 1)
-                            zombie.takeDamage(1800);
+                            zombie.setState(Zombie.State.BOOMED);
                     }
                 }
             } else if (getState() == State.EXPLODE) {

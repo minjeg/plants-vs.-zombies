@@ -5,6 +5,7 @@ import model.LawnMower;
 import model.plant.Plant;
 import view.ingame.AudioPlayer;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Random;
@@ -21,7 +22,9 @@ public abstract class Zombie implements Serializable {
     private AudioPlayer[] eatSoundPlayer = new AudioPlayer[3];
     private AudioPlayer gulpSoundPlayer;
     private AudioPlayer[] hitSoundPlayer = new AudioPlayer[3];
-    int soundPlayTimer = 0;
+    private int soundPlayTimer = 0;
+
+    private int deadAnimationPlayTimer = 0;
 
     private boolean isHit = false;
 
@@ -34,15 +37,9 @@ public abstract class Zombie implements Serializable {
                 new File("sounds/audio/chompsoft.wav"), AudioPlayer.NORMAL);
         gulpSoundPlayer = AudioPlayer.getAudioPlayer(
                 new File("sounds/audio/gulp.wav"), AudioPlayer.NORMAL);
-        hitSoundPlayer[0] = AudioPlayer.getAudioPlayer(
-                new File("sounds/audio/splat.wav"), AudioPlayer.NORMAL);
-        hitSoundPlayer[1] = AudioPlayer.getAudioPlayer(
-                new File("sounds/audio/splat2.wav"), AudioPlayer.NORMAL);
-        hitSoundPlayer[2] = AudioPlayer.getAudioPlayer(
-                new File("sounds/audio/splat3.wav"), AudioPlayer.NORMAL);
     }
 
-    public enum State {WALKING, EATING}
+    public enum State {WALKING, EATING, DEAD, BOOMED, TOTALLY_DEAD}
 
     protected Zombie(int health, int x, int speed, int damage) {
         this.health = health;
@@ -52,7 +49,7 @@ public abstract class Zombie implements Serializable {
     }
 
     public boolean update(GameModel gameModel, int row, int index) {
-        if (isDead()) {
+        if (state == State.TOTALLY_DEAD) {
             gameModel.getZombies(row).remove(index);
             return true;
         }
@@ -74,6 +71,8 @@ public abstract class Zombie implements Serializable {
             }
         }
         //根据僵尸状态、前方是否有植物进行数据、状态更新
+        if(health <= 0)
+            setState(State.DEAD);
         Plant plant = gameModel.getPlant(row, col);
         if (state == State.WALKING && plant != null
                 && Math.abs(x - (col + 0.5) * gameModel.getBlockWidth()) < 20)
@@ -93,12 +92,16 @@ public abstract class Zombie implements Serializable {
                     setState(State.WALKING);
                 }
             }
+        } else if(isDead()) {
+            deadAnimationPlayTimer += 30;
+            if(deadAnimationPlayTimer >= 2200)
+                setState(State.TOTALLY_DEAD);
         }
         return false;
     }
 
     public boolean isDead() {
-        return health <= 0;
+        return state == State.DEAD || state == State.BOOMED || state == State.TOTALLY_DEAD;
     }
 
     public int getHealth() {
@@ -107,7 +110,6 @@ public abstract class Zombie implements Serializable {
 
     public void takeDamage(int damage) {
         health -= damage;
-        playHitSound();
         if(!isDead()) isHit = true;
     }
 
@@ -143,7 +145,21 @@ public abstract class Zombie implements Serializable {
         isHit = false;
     }
 
-    protected void playHitSound() {
-        hitSoundPlayer[new Random().nextInt(0, 3)].start();
+    public int getImageX() {
+        return (int) (60 + getX()
+                - new ImageIcon(currentImagePath).getImage().getWidth(null) / 2.0);
+    }
+
+    public int getImageY(int row) {
+        return (int) (60 + (row + 0.5) * 100
+                - new ImageIcon(currentImagePath).getImage().getHeight(null) / 2.0);
+    }
+
+    public int getShadeX() {
+        return (int) (60 + getX() - 43) + 20;
+    }
+
+    public int getShadeY(int row) {
+        return (int) (60 + (row + 0.5) * 100 + 18);
     }
 }

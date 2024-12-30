@@ -19,7 +19,7 @@ public class Sunflower extends Plant {
             return;
         }
         timer += gameModel.getUpdateGap();
-        if (timer >= getPerformGap()) {
+        if (gameModel.getState() == GameModel.State.RUNNING && timer >= getPerformGap()) {
             gameModel.addSun(new Sun(gameModel, row, col));
             timer -= getPerformGap();
         }

@@ -56,14 +56,14 @@ public class PotatoMine extends Plant {
                 if(Math.abs(zombie.getX() - (col + 0.5) * gameModel.getBlockWidth()) <= 20) {
                     for(Zombie z : zombies) {
                         if(Math.abs(z.getX() - (col + 0.5) * gameModel.getBlockWidth()) <= 20)
-                            z.takeDamage(1800);
+                            z.setState(Zombie.State.TOTALLY_DEAD);
                     }
-                    setState(State.EXPLODE);
+                    setState(State.EXPLODING);
                     timer = 1000;
                     return;
                 }
             }
-        } else if(getState() == State.EXPLODE) {
+        } else if(getState() == State.EXPLODING) {
             if(explodeSoundEnabled) {
                 explosionPlayer.start();
                 explodeSoundEnabled = false;
@@ -83,7 +83,7 @@ public class PotatoMine extends Plant {
             setCurrentImagePath("images/Plant/PotatoMine/rise.gif");
         else if(state == State.ARMED)
             setCurrentImagePath("images/Plant/PotatoMine/armed.gif");
-        else if(state == State.EXPLODE)
+        else if(state == State.EXPLODING)
             setCurrentImagePath("images/Plant/PotatoMine/Explode.png");
     }
 }

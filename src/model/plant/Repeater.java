@@ -61,4 +61,14 @@ public class Repeater extends Plant {
         else
             setCurrentImagePath("images/Plant/Repeater/shooting.gif");
     }
+
+    @Override
+    public int getImageX(int col) {
+        return super.getImageX(col) + 5;
+    }
+
+    @Override
+    public int getImageY(int row) {
+        return super.getImageY(row) - 10;
+    }
 }
