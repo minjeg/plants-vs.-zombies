@@ -1,6 +1,7 @@
 package view;
 
 import model.Level;
+import view.award.AwardPanel;
 import view.ingame.GamePanel;
 import view.intromenu.ExitGameButton;
 import view.intromenu.MenuPanel;
@@ -12,6 +13,7 @@ import java.awt.event.ActionListener;
 public class PlayFrame extends JFrame {
     private MenuPanel menuPanel = new MenuPanel(this);
     private GamePanel gamePanel = new GamePanel(this, new Level(50, 20));
+    private AwardPanel awardPanel = new AwardPanel(this);
 
     public PlayFrame() {
         this.setVisible(true);
@@ -25,8 +27,11 @@ public class PlayFrame extends JFrame {
         this.setResizable(false);
 
         this.add(menuPanel);
+        menuPanel.setState(MenuPanel.NORMAL);
         this.add(gamePanel);
-        gamePanel.setVisible(false);
+        gamePanel.setState(GamePanel.WAIT);
+        this.add(awardPanel);
+        awardPanel.setState(AwardPanel.OFF);
     }
 
     public void startPlay() {
@@ -35,5 +40,9 @@ public class PlayFrame extends JFrame {
 
     public void returnToMenu() {
         menuPanel.setState(MenuPanel.NORMAL);
+    }
+
+    public void getAward() {
+        awardPanel.setState(AwardPanel.ON);
     }
 }

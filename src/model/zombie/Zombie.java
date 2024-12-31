@@ -19,11 +19,9 @@ public abstract class Zombie implements Serializable {
     private State state = State.WALKING;
     private String currentImagePath;
 
-    private boolean parabolaItemGettable = false;
-
     private AudioPlayer[] eatSoundPlayer = new AudioPlayer[3];
     private AudioPlayer gulpSoundPlayer;
-    private AudioPlayer[] hitSoundPlayer = new AudioPlayer[3];
+
     private int soundPlayTimer = 0;
 
     private int deadAnimationPlayTimer = 0;
@@ -74,7 +72,7 @@ public abstract class Zombie implements Serializable {
         //根据僵尸状态、前方是否有植物进行数据、状态更新
         if (health <= 0)
             setState(State.DEAD);
-        Plant plant = gameModel.getPlant(row, col);
+        Plant plant = col >= 0 ? gameModel.getPlant(row, col) : null;
         if (state == State.WALKING && plant != null
                 && Math.abs(x - (col + 0.5) * gameModel.getBlockWidth()) < 20)
             setState(State.EATING);
@@ -95,7 +93,7 @@ public abstract class Zombie implements Serializable {
             }
         } else if (isDead()) {
             deadAnimationPlayTimer += 30;
-            if (deadAnimationPlayTimer >= 2200)
+            if (deadAnimationPlayTimer >= 2300)
                 setState(State.TOTALLY_DEAD);
         }
         return false;

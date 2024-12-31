@@ -10,6 +10,7 @@ public class PauseButton extends JButton {
         this.setBorderPainted(false);
         this.setIcon(new ImageIcon("images/Buttons/PauseButton.png"));
         this.setPressedIcon(new ImageIcon("images/Buttons/PauseButton_down.png"));
+        this.setDisabledIcon(new ImageIcon("images/Buttons/PauseButton.png"));
         this.addActionListener(l);
     }
 }

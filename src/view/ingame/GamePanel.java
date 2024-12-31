@@ -27,9 +27,14 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
     private GameModel gameModel;
     private final int deltaX = 60, deltaY = 60;
 
+    private BufferedImage bufferedImage = new BufferedImage(835, 635, BufferedImage.TYPE_INT_RGB);
+
     private PauseMenuPanel pauseMenu;
     private BackToMenuDialog backToMenuDialog;
     private RestartDialog restartDialog;
+    private PauseButton pauseButton;
+    private LoseGameDialog loseGameDialog;
+
     private Level level;
 
     private static final AudioPlayer COMMON_BGM_PLAYER;
@@ -46,16 +51,26 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
     private static final AudioPlayer READY_SET_PLANT_PLAYER;
     private static final AudioPlayer HUGE_WAVE_APPROACHING_PLAYER;
     private static final AudioPlayer FINAL_WAVE_APPROACHING_PLAYER;
+    private static final AudioPlayer LOSE_PLAYER;
+    private static final AudioPlayer SCREAM_PLAYER;
+    private static final AudioPlayer WIN_PLAYER;
+    private static final AudioPlayer PRIZE_PLAYER;
 
     private PlayFrame frame;
 
     private int state = WAIT;
-    public static final int WAIT = 0, READY = 1, START = 2;
+    public static final int WAIT = 0, READY = 1, START = 2, SETTLE = 3;
 
     private int readyTimer = 0;
+
     private boolean hugeWaveSoundPlayable = false;
     private boolean hugeWaveSoundPlayed = false;
     private int finalWaveShowTimer = 0;
+
+    private int loseAnimationPerformTimer = 0;
+
+    private int winAnimationPerformTimer = 0;
+    private boolean trophyGenerated = false;
 
     private static final Font STANDARD = new Font("Standard", Font.PLAIN, 15);
 
@@ -102,6 +117,14 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
                 new File("sounds/audio/hugewave.wav"), AudioPlayer.NORMAL);
         FINAL_WAVE_APPROACHING_PLAYER = AudioPlayer.getAudioPlayer(
                 new File("sounds/audio/finalwave.wav"), AudioPlayer.NORMAL);
+        LOSE_PLAYER = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/losemusic.wav"), AudioPlayer.NORMAL);
+        WIN_PLAYER = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/winmusic.wav"), AudioPlayer.NORMAL);
+        SCREAM_PLAYER = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/scream.wav"), AudioPlayer.NORMAL);
+        PRIZE_PLAYER = AudioPlayer.getAudioPlayer(
+                new File("sounds/audio/prize.wav"), AudioPlayer.NORMAL);
     }
 
     private int previousWave = 0;
@@ -113,8 +136,6 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         this.setLayout(null);
         this.addMouseListener(this);
         this.addMouseMotionListener(this);
-        this.add(new PauseButton(this));
-
 
         this.level = level;
         gameModel = new GameModel(720, 500, 30, level);
@@ -128,6 +149,12 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         pauseMenu = new PauseMenuPanel(this);
         pauseMenu.setVisible(false);
         this.add(pauseMenu);
+        pauseButton = new PauseButton(this);
+        this.add(pauseButton);
+        loseGameDialog = new LoseGameDialog(this);
+        loseGameDialog.setVisible(false);
+        this.add(loseGameDialog);
+
 
         currentBGMPlayer = COMMON_BGM_PLAYER;
         setState(WAIT);
@@ -145,18 +172,28 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
                         readyTimer = 0;
                     }
                     repaint();
+                    panelUpdate();
                 }
                 if (gameModel.getState() == GameModel.State.RUNNING) {
                     synchronized (gameModel) {
                         repaint();
+                        panelUpdate();
                     }
                 } else if (gameModel.getState() == GameModel.State.WIN) {
+                    panelUpdate();
                     repaint();
-                    showMessageDialog(GamePanel.this, "You win!");
-                    this.cancel();
+                    if(state == SETTLE) {
+                        winAnimationPerformTimer += gameModel.getUpdateGap();
+                        if(winAnimationPerformTimer >= 8000) {
+                            setState(WAIT);
+                            frame.getAward();
+                        }
+                    }
                 } else if (gameModel.getState() == GameModel.State.LOSE) {
-                    showMessageDialog(GamePanel.this, "You lose!");
-                    this.cancel();
+                    panelUpdate();
+                    repaint();
+                    loseAnimationPerformTimer =
+                            Math.min(loseAnimationPerformTimer + gameModel.getUpdateGap(), 8000);
                 }
             }
         }, 0, gameModel.getUpdateGap());
@@ -176,6 +213,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
 
         // 绘制当前阳光数
         g.setFont(STANDARD);
+        g.setColor(Color.BLACK);
         String numOfSun = Integer.toString(gameModel.getSun());
         g.drawString(numOfSun,
                 44 - numOfSun.length() * g.getFont().getSize() / 4, 89);
@@ -383,8 +421,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         }
     }
 
-    @Override
-    public void paintComponent(Graphics g) {
+    private void paintImages(Graphics g) {
         super.paintComponent(g);
 
         paintBackground(g);
@@ -396,11 +433,11 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
 
         paintBullets(g);
         paintLawnMowers(g);
-        if (level.getCurrentWave() != 0)
+        if (level.getCurrentWave() != 0 && gameModel.getState() != GameModel.State.LOSE)
             paintLoadBar(g);
         paintSun(g);
 
-        if (imageFollowMouse != null)
+        if (imageFollowMouse != null && gameModel.getState() != GameModel.State.LOSE)
             g.drawImage(imageFollowMouse,
                     mousePos.x - imageFollowMouse.getWidth(null) / 2,
                     mousePos.y - imageFollowMouse.getHeight(null) / 2, null);
@@ -426,6 +463,48 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
             }
         }
 
+        if(level.getCurrentWave() == level.getTotalWave()) {
+            if(finalWaveShowTimer < 1200)
+                g.drawImage(new ImageIcon("images/FinalWave.png").getImage(),
+                        220, 250, null);
+            finalWaveShowTimer += gameModel.getUpdateGap();
+        }
+    }
+
+    @Override
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        if(gameModel.getState() == GameModel.State.LOSE) {
+            g.drawImage(bufferedImage, 0, 0, null);
+        } else {
+            paintImages(g);
+        }
+
+        if(loseAnimationPerformTimer >= 5000 && loseAnimationPerformTimer < 8000)
+            g.drawImage(new ImageIcon("images/ZombiesAteYourBrain.png").getImage(),
+                    120, 80, null);
+
+        if(gameModel.getState() == GameModel.State.WIN) {
+            int x = (int) (400 - Math.min(winAnimationPerformTimer, 1200) * (5.0 / 120));
+            g.drawImage(new ImageIcon("images/trophy.png").getImage(),
+                    x, 4 * x - 1200, null);
+            if(winAnimationPerformTimer == 0)
+                g.drawImage(new ImageIcon("images/PointerDown.gif").getImage(),
+                        434, 370, null);
+            if(winAnimationPerformTimer >= 1800 && winAnimationPerformTimer <= 8000) {
+                g.setColor(Color.WHITE);
+                Graphics2D g2d = (Graphics2D) g;
+                float alpha = Math.min((winAnimationPerformTimer - 1800) / 5400f, 1.0f);
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+                g2d.fillRect(0, 0, 835, 635);
+                g2d.setColor(null);
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+            }
+        }
+    }
+
+    private void panelUpdate() {
         if(hugeWaveSoundPlayable && !hugeWaveSoundPlayed) {
             HUGE_WAVE_APPROACHING_PLAYER.start();
             hugeWaveSoundPlayed = true;
@@ -454,11 +533,25 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         }
         previousWave = level.getCurrentWave();
 
-        if(level.getCurrentWave() == level.getTotalWave()) {
-            if(finalWaveShowTimer < 1200)
-                g.drawImage(new ImageIcon("images/FinalWave.png").getImage(),
-                        220, 250, null);
-            finalWaveShowTimer += gameModel.getUpdateGap();
+        if(gameModel.getState() == GameModel.State.LOSE) {
+            COMMON_BGM_PLAYER.stop();
+            FAST_BGM_PLAYER.stop();
+            pauseButton.setVisible(false);
+            if(loseAnimationPerformTimer == 0) {
+                paintImages(bufferedImage.createGraphics());
+                LOSE_PLAYER.start();
+            }
+            else if(loseAnimationPerformTimer == 5010)
+                SCREAM_PLAYER.start();
+            else if(loseAnimationPerformTimer == 8000)
+                loseGameDialog.setVisible(true);
+        }
+
+        if(gameModel.getState() == GameModel.State.WIN) {
+            if(!trophyGenerated) {
+                PRIZE_PLAYER.start();
+                trophyGenerated = true;
+            }
         }
     }
 
@@ -474,7 +567,15 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         if (gameModel.getState() != GameModel.State.RUNNING &&
                 gameModel.getState() != GameModel.State.WIN)
             return;
+
         if (!gameModel.isGrabShovel() && gameModel.getSeedInHand() == null) {
+            if(gameModel.getState() == GameModel.State.WIN && state != SETTLE) {
+                if(mousePos.x >= 400 && mousePos.x <= 500
+                        && mousePos.y >= 400 && mousePos.y <= 481) {
+                    setState(SETTLE);
+                    return;
+                }
+            }
             List<Sun> sunList = gameModel.getSuns();
             for (int i = 0; i < sunList.size(); i++) {
                 Sun temp = sunList.get(i);
@@ -563,13 +664,11 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
     public void actionPerformed(ActionEvent e) {
         JButton source = (JButton) e.getSource();
         if (source instanceof PauseButton) {
-            if (gameModel.getState() == GameModel.State.RUNNING) {
-                PAUSE_SOUND_PLAYER.start();
-                gameModel.pauseGame();
-                pauseMenu.setVisible(true);
-                FAST_BGM_PLAYER.stop();
-                COMMON_BGM_PLAYER.stop();
-            }
+            PAUSE_SOUND_PLAYER.start();
+            gameModel.pauseGame();
+            pauseMenu.setVisible(true);
+            FAST_BGM_PLAYER.stop();
+            COMMON_BGM_PLAYER.stop();
         } else if (source instanceof BackToGameButton) {
             if (gameModel.getState() == GameModel.State.PAUSED) {
                 gameModel.continueGame();
@@ -592,7 +691,8 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         } else if(source instanceof RestartCancelButton) {
             restartDialog.setVisible(false);
             pauseMenu.enableAll();
-        } else if(source instanceof RestartConfirmButton) {
+        } else if(source instanceof RestartConfirmButton
+                || source instanceof LoseConfirmButton) {
             level = new Level(level.getInitialSun(), level.getTotalWave());
             gameModel = new GameModel(720, 500, 30, level);
             pauseMenu.setVisible(false);
@@ -613,12 +713,23 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
             pauseMenu.setVisible(false);
             backToMenuDialog.setVisible(false);
             restartDialog.setVisible(false);
+            loseGameDialog.setVisible(false);
+            pauseButton.setVisible(true);
+            pauseButton.setEnabled(false);
             this.setVisible(true);
             READY_SET_PLANT_PLAYER.start();
         } else if(state == START) {
+            pauseButton.setEnabled(true);
             currentBGMPlayer.start();
             gameModel.setState(GameModel.State.RUNNING);
+            readyTimer = 0;
             finalWaveShowTimer = 0;
+            loseAnimationPerformTimer = 0;
+        } else if(state == SETTLE) {
+            pauseButton.setVisible(false);
+            COMMON_BGM_PLAYER.stop();
+            FAST_BGM_PLAYER.stop();
+            WIN_PLAYER.start();
         }
     }
 }
