@@ -29,6 +29,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
 
     private PauseMenuPanel pauseMenu;
     private BackToMenuDialog backToMenuDialog;
+    private RestartDialog restartDialog;
     private Level level;
 
     private static final AudioPlayer COMMON_BGM_PLAYER;
@@ -121,6 +122,9 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         backToMenuDialog = new BackToMenuDialog(this);
         backToMenuDialog.setVisible(false);
         this.add(backToMenuDialog);
+        restartDialog = new RestartDialog(this);
+        restartDialog.setVisible(false);
+        this.add(restartDialog);
         pauseMenu = new PauseMenuPanel(this);
         pauseMenu.setVisible(false);
         this.add(pauseMenu);
@@ -572,12 +576,6 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
                 pauseMenu.setVisible(false);
                 currentBGMPlayer.continuePlay();
             }
-        } else if (source instanceof RestartButton) {
-            level = new Level(level.getInitialSun(), level.getTotalWave());
-            gameModel = new GameModel(720, 500, 30, level);
-            pauseMenu.setVisible(false);
-            currentBGMPlayer = COMMON_BGM_PLAYER;
-            this.setState(READY);
         } else if(source instanceof ReturnToMenuButton) {
             backToMenuDialog.setVisible(true);
             pauseMenu.disableAll();
@@ -588,6 +586,18 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
             this.setState(WAIT);
             this.setVisible(false);
             frame.returnToMenu();
+        } else if(source instanceof RestartButton) {
+            restartDialog.setVisible(true);
+            pauseMenu.disableAll();
+        } else if(source instanceof RestartCancelButton) {
+            restartDialog.setVisible(false);
+            pauseMenu.enableAll();
+        } else if(source instanceof RestartConfirmButton) {
+            level = new Level(level.getInitialSun(), level.getTotalWave());
+            gameModel = new GameModel(720, 500, 30, level);
+            pauseMenu.setVisible(false);
+            currentBGMPlayer = COMMON_BGM_PLAYER;
+            this.setState(READY);
         }
     }
 
@@ -602,6 +612,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
             pauseMenu.enableAll();
             pauseMenu.setVisible(false);
             backToMenuDialog.setVisible(false);
+            restartDialog.setVisible(false);
             this.setVisible(true);
             READY_SET_PLANT_PLAYER.start();
         } else if(state == START) {
