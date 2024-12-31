@@ -19,6 +19,8 @@ public abstract class Zombie implements Serializable {
     private State state = State.WALKING;
     private String currentImagePath;
 
+    private boolean parabolaItemGettable = false;
+
     private AudioPlayer[] eatSoundPlayer = new AudioPlayer[3];
     private AudioPlayer gulpSoundPlayer;
     private AudioPlayer[] hitSoundPlayer = new AudioPlayer[3];
@@ -55,17 +57,16 @@ public abstract class Zombie implements Serializable {
         }
         if (state == State.WALKING) {
             if (x == defaultX)
-                x = gameModel.getWidth() * (1 + Math.random() / 10);
+                x = gameModel.getWidth() * (1.1 + Math.random() / 10);
             x -= 1.0 * gameModel.getUpdateGap() * gameModel.getWidth() / speed;
         }
         int col = getClosestColumn(gameModel);
         //僵尸到达小推车
-        if (col < 0) {
+        if (x < -30) {
             if (gameModel.getLawnMower(row) != null) {
                 gameModel.getLawnMower(row).setState(LawnMower.State.ON);
-                gameModel.getZombies(row).remove(index);
-                return true;
-            } else {
+                takeDamage(health);
+            } else if(col < -1) {
                 gameModel.setState(GameModel.State.LOSE);
                 return false;
             }

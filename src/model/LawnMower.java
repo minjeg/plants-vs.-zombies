@@ -3,6 +3,7 @@ package model;
 import model.zombie.Zombie;
 import view.ingame.AudioPlayer;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.Serializable;
 
@@ -15,6 +16,7 @@ public class LawnMower implements Serializable {
 
     private AudioPlayer soundPlayer = AudioPlayer.getAudioPlayer(
             new File("sounds/audio/lawnmower.wav"), AudioPlayer.NORMAL);
+    private boolean soundPlayable = true;
 
     public enum State {ON, OFF}
 
@@ -50,7 +52,28 @@ public class LawnMower implements Serializable {
             currentImagePath = "images/LawnMower/idle.png";
         else if (state == State.ON) {
             currentImagePath = "images/LawnMower/moving.gif";
-            soundPlayer.start();
+            if(soundPlayable) {
+                soundPlayer.start();
+                soundPlayable = false;
+            }
         }
+    }
+
+    public int getImageX() {
+        return (int) (60 + getX()
+                - new ImageIcon(currentImagePath).getImage().getWidth(null) / 2.0);
+    }
+
+    public int getImageY(int row) {
+        return (int) (60 + (row + 0.5) * 100
+                - new ImageIcon(currentImagePath).getImage().getHeight(null) / 2.0);
+    }
+
+    public int getShadeX() {
+        return getImageX() + 10;
+    }
+
+    public int getShadeY(int row) {
+        return getImageY(row) + 85;
     }
 }

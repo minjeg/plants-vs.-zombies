@@ -5,7 +5,6 @@ import model.LawnMower;
 import model.Level;
 import model.Sun;
 import model.bullet.Bullet;
-import model.plant.CherryBomb;
 import model.plant.Plant;
 import model.seed.*;
 import model.zombie.Zombie;
@@ -16,10 +15,9 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.*;
 import java.util.List;
-import java.util.Random;
 import java.util.Timer;
-import java.util.TimerTask;
 
 import static javax.swing.JOptionPane.showMessageDialog;
 
@@ -53,7 +51,10 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
     private int state = WAIT;
     public static final int WAIT = 0, READY = 1, START = 2;
 
-    int readyTimer = 0;
+    private int readyTimer = 0;
+    private boolean hugeWaveSoundPlayable = false;
+    private boolean hugeWaveSoundPlayed = false;
+    private int finalWaveShowTimer = 0;
 
     private static final Font STANDARD = new Font("Standard", Font.PLAIN, 15);
 
@@ -215,7 +216,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
                 Plant plant = gameModel.getPlant(row, col);
                 if (plant == null || plant.getState() == Plant.State.EXPLODING)
                     continue;
-                Image image = new ImageIcon("images/shadow.png").getImage();
+                Image image = new ImageIcon("images/Plant/PlantShadow.png").getImage();
                 g.drawImage(image, plant.getShadeX(col), plant.getShadeY(row), null);
             }
         }
@@ -224,7 +225,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
             List<Zombie> zombies = gameModel.getZombies(row);
             for (Zombie zombie : zombies) {
                 if(zombie.isDead()) continue;
-                Image image = new ImageIcon("images/shadow.png").getImage();
+                Image image = new ImageIcon("images/Zombie/ZombieShadow.png").getImage();
                 g.drawImage(image, zombie.getShadeX(), zombie.getShadeY(row), null);
             }
         }
@@ -233,9 +234,29 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
             List<Bullet> bullets = gameModel.getBullets(row);
             for (Bullet bullet : bullets) {
                 Image image = new ImageIcon("images/Bullet/bulletShadow.png").getImage();
-                g.drawImage(image, (int) (deltaX + bullet.getX() - image.getWidth(null) / 2.0),
-                        (int) (deltaY + (row + 0.5) * blockHeight + image.getHeight(null) * 3.0), null);
+                g.drawImage(image, bullet.getShadeX(), bullet.getShadeY(row), null);
             }
+        }
+        // 绘制小推车的影子
+        for (int row = 0; row < gameModel.getRows(); ++row) {
+            LawnMower lawnMower = gameModel.getLawnMower(row);
+            if (lawnMower == null)
+                continue;
+            Image image = new ImageIcon("images/LawnMower/LawnMowerShadow.png").getImage();
+            g.drawImage(image, lawnMower.getShadeX(), lawnMower.getShadeY(row), null);
+        }
+    }
+
+    private void paintLawnMowers(Graphics g) {
+        int blockHeight = gameModel.getBlockHeight();
+
+        //绘制割草机
+        for (int row = 0; row < gameModel.getRows(); ++row) {
+            LawnMower lawnMower = gameModel.getLawnMower(row);
+            if (lawnMower == null)
+                continue;
+            Image image = new ImageIcon(lawnMower.getCurrentImagePath()).getImage();
+            g.drawImage(image, lawnMower.getImageX(), lawnMower.getImageY(row), null);
         }
     }
 
@@ -323,23 +344,8 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
             List<Bullet> bullets = gameModel.getBullets(row);
             for (Bullet bullet : bullets) {
                 Image image = new ImageIcon(bullet.getCurrentImagePath()).getImage();
-                g.drawImage(image, (int) (deltaX + bullet.getX() - image.getWidth(null) / 2.0),
-                        (int) (deltaY + (row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
+                g.drawImage(image, bullet.getImageX(), bullet.getImageY(row), null);
             }
-        }
-    }
-
-    private void paintLawnMowers(Graphics g) {
-        int blockHeight = gameModel.getBlockHeight();
-
-        //绘制割草机
-        for (int row = 0; row < gameModel.getRows(); ++row) {
-            LawnMower lawnMower = gameModel.getLawnMower(row);
-            if (lawnMower == null)
-                continue;
-            Image image = new ImageIcon(lawnMower.getCurrentImagePath()).getImage();
-            g.drawImage(image, (int) (deltaX + lawnMower.getX() - image.getWidth(null) / 2.0),
-                    (int) (deltaY + (row + 0.5) * blockHeight - image.getHeight(null) / 2.0), null);
         }
     }
 
@@ -383,6 +389,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         paintShadows(g);
         paintPlants(g);
         paintZombies(g);
+
         paintBullets(g);
         paintLawnMowers(g);
         if (level.getCurrentWave() != 0)
@@ -397,22 +404,36 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         if(state == READY) {
             if(readyTimer <= 600)
                 g.drawImage(new ImageIcon("images/ready1.png").getImage(),
-                        300, 200, null);
+                        300, 270, null);
             else if(readyTimer <= 1200)
                 g.drawImage(new ImageIcon("images/ready2.png").getImage(),
-                        300, 200, null);
+                        300, 300, null);
             else if(readyTimer <= 1800)
                 g.drawImage(new ImageIcon("images/ready3.png").getImage(),
                         200, 200, null);
+        } else {
+            if(level.isShowingWords()) {
+                g.drawImage(new ImageIcon("images/Approaching.png").getImage(),
+                        120, 300, null);
+                hugeWaveSoundPlayable = true;
+            } else {
+                hugeWaveSoundPlayable = false;
+                hugeWaveSoundPlayed = false;
+            }
+        }
+
+        if(hugeWaveSoundPlayable && !hugeWaveSoundPlayed) {
+            HUGE_WAVE_APPROACHING_PLAYER.start();
+            hugeWaveSoundPlayed = true;
         }
 
         // 根据僵尸数量切换bgm
         int numOfZombies = gameModel.getNumOfZombies();
-        if (currentBGMPlayer == COMMON_BGM_PLAYER && numOfZombies >= 4) {
+        if (currentBGMPlayer == COMMON_BGM_PLAYER && numOfZombies >= 6) {
             currentBGMPlayer = FAST_BGM_PLAYER;
             FAST_BGM_PLAYER.startFrom(COMMON_BGM_PLAYER.getCurrentFrame());
             COMMON_BGM_PLAYER.stop();
-        } else if (currentBGMPlayer == FAST_BGM_PLAYER && numOfZombies < 4) {
+        } else if (currentBGMPlayer == FAST_BGM_PLAYER && numOfZombies < 6) {
             currentBGMPlayer = COMMON_BGM_PLAYER;
             COMMON_BGM_PLAYER.startFrom(FAST_BGM_PLAYER.getCurrentFrame());
             FAST_BGM_PLAYER.stop();
@@ -421,11 +442,20 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         if (previousWave == level.getCurrentWave() - 1) {
             if (level.getCurrentWave() == 1)
                 FIRST_ARRIVE_SIREN_PLAYER.start();
-            else if (level.getCurrentWave() % 10 == 0
-                    || level.getCurrentWave() == level.getTotalWave())
+            else if (level.isFlagWave()) {
                 SIREN_PLAYER.start();
+                if(level.getCurrentWave() == level.getTotalWave())
+                    FINAL_WAVE_APPROACHING_PLAYER.start();
+            }
         }
         previousWave = level.getCurrentWave();
+
+        if(level.getCurrentWave() == level.getTotalWave()) {
+            if(finalWaveShowTimer < 1200)
+                g.drawImage(new ImageIcon("images/FinalWave.png").getImage(),
+                        220, 250, null);
+            finalWaveShowTimer += gameModel.getUpdateGap();
+        }
     }
 
     @Override
@@ -577,6 +607,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         } else if(state == START) {
             currentBGMPlayer.start();
             gameModel.setState(GameModel.State.RUNNING);
+            finalWaveShowTimer = 0;
         }
     }
 }

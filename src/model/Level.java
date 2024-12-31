@@ -203,6 +203,10 @@ public class Level implements Serializable {
         return wave % 10 == 9 || wave < 10 && wave == totalWave - 1;
     }
 
+    public boolean isFlagWave() {
+        return currentWave % 10 == 0 || currentWave == totalWave;
+    }
+
     public int getInitialSun() {
         return initialSun;
     }

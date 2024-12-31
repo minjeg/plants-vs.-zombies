@@ -5,6 +5,7 @@ import model.zombie.BucketheadZombie;
 import model.zombie.Zombie;
 import view.ingame.AudioPlayer;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
@@ -28,13 +29,14 @@ public abstract class Bullet implements Serializable {
     //返回子弹是否被移除
     public boolean update(GameModel gameModel, int row, int index) {
         //子弹超出范围
-        if (x < 0 || x > gameModel.getWidth()) {
+        if (x < 0 || x > gameModel.getWidth() * 1.2) {
             gameModel.getBullets(row).remove(index);
             return true;
         }
         //子弹击中僵尸
         List<Zombie> zombies = gameModel.getZombies(row);
         for (Zombie zombie : zombies) {
+            if(zombie.isDead()) continue;
             if (Math.abs(zombie.getX() - this.getX()) < 10) {
                 zombie.takeDamage(this.getDamage());
                 gameModel.getBullets(row).remove(index);
@@ -77,5 +79,23 @@ public abstract class Bullet implements Serializable {
 
     public void setIronShieldHitPlayer(AudioPlayer ironShieldHitPlayer) {
         this.ironShieldHitPlayer = ironShieldHitPlayer;
+    }
+
+    public int getImageX() {
+        return (int) (60 + getX()
+                - new ImageIcon(currentImagePath).getImage().getWidth(null) / 2.0);
+    }
+
+    public int getImageY(int row) {
+        return (int) (60 + (row + 0.5) * 100
+                - new ImageIcon(currentImagePath).getImage().getHeight(null) / 2.0) - 10;
+    }
+
+    public int getShadeX() {
+        return (int) (60 + getX() - 9);
+    }
+
+    public int getShadeY(int row) {
+        return (int) (60 + (row + 0.5) * 100 + 28);
     }
 }

@@ -28,7 +28,9 @@ public class Chomper extends Plant {
         if (getState() == State.IDLE) {
             List<Zombie> zombies = gameModel.getZombies(row);
             for (Zombie zombie : zombies) {
-                if (zombie.getX() <= (col + 2) * gameModel.getBlockWidth()) {
+                if(zombie.isDead()) continue;
+                if (zombie.getX() <= (col + 2) * gameModel.getBlockWidth()
+                        && zombie.getX() < gameModel.getWidth() * 1.05) {
                     setState(State.ATTACK);
                     timer = 1000;
                     break;

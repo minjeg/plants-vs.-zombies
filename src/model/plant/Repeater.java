@@ -2,6 +2,7 @@ package model.plant;
 
 import model.GameModel;
 import model.bullet.Pea;
+import model.zombie.Zombie;
 import view.ingame.AudioPlayer;
 
 import java.io.File;
@@ -32,12 +33,30 @@ public class Repeater extends Plant {
             gameModel.setPlant(row, col, null);
             return;
         }
-        if (getState() == State.IDLE && !gameModel.getZombies(row).isEmpty()) {
-            setState(State.SHOOTING);
-            timer = getPerformGap();
+        if (getState() == State.IDLE) {
+            for(Zombie zombie : gameModel.getZombies(row)) {
+                if(zombie.isDead()) continue;
+                int x = zombie.getX();
+                if(x >= (col + 0.5) * gameModel.getBlockWidth()
+                        && x < gameModel.getWidth() * 1.1) {
+                    setState(State.SHOOTING);
+                    timer = getPerformGap();
+                    break;
+                }
+            }
         } else if (getState() == State.SHOOTING) {
+            boolean isDone = true;
+            for(Zombie zombie : gameModel.getZombies(row)) {
+                if(zombie.isDead()) continue;
+                int x = zombie.getX();
+                if(x >= (col + 0.5) * gameModel.getBlockWidth()
+                        && x < gameModel.getWidth() * 1.1) {
+                    isDone = false;
+                    break;
+                }
+            }
             timer -= gameModel.getUpdateGap();
-            if (gameModel.getZombies(row).isEmpty()) {
+            if (isDone) {
                 setState(State.IDLE);
             } else if (timer <= 0) {
                 shootPlayer[new Random().nextInt(0, 2)].start();
