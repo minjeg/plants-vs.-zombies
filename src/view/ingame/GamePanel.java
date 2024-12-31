@@ -59,7 +59,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
     private PlayFrame frame;
 
     private int state = WAIT;
-    public static final int WAIT = 0, READY = 1, START = 2, SETTLE = 3;
+    public static final int WAIT = 0, READY = 1, START = 2, SETTLE = 3, LOADING = 4;
 
     private int readyTimer = 0;
 
