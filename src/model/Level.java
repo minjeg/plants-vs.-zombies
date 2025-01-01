@@ -11,9 +11,9 @@ import java.util.*;
 public class Level implements Serializable {
     private final int rows = 5, cols = 9;
     private final int initialSun;
-    private int currentWave = 18;
+    private int currentWave = 0;
     private final int totalWave;
-    private long totalTime = 18000, timer = 0;
+    private long totalTime = 18000, timer = totalTime;
     private int currentWaveTotalZombieHealth;
     private List<Zombie> nextWaveZombies;
     private double rate;
