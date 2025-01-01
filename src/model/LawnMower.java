@@ -14,7 +14,7 @@ public class LawnMower implements Serializable {
     private String currentImagePath;
     State state;
 
-    private AudioPlayer soundPlayer = AudioPlayer.getAudioPlayer(
+    private final AudioPlayer soundPlayer = AudioPlayer.getAudioPlayer(
             new File("sounds/audio/lawnmower.wav"), AudioPlayer.NORMAL);
     private boolean soundPlayable = true;
 
@@ -32,7 +32,7 @@ public class LawnMower implements Serializable {
             x += 1.0 * gameModel.getUpdateGap() * gameModel.getWidth() / speed;
             for (Zombie zombie : gameModel.getZombies(row)) {
                 if (Math.abs(this.x - zombie.getX()) < 20) {
-                    zombie.takeDamage(10000);
+                    zombie.takeDamage(zombie.getHealth());
                 }
             }
         }
@@ -52,7 +52,7 @@ public class LawnMower implements Serializable {
             currentImagePath = "images/LawnMower/idle.png";
         else if (state == State.ON) {
             currentImagePath = "images/LawnMower/moving.gif";
-            if(soundPlayable) {
+            if (soundPlayable) {
                 soundPlayer.start();
                 soundPlayable = false;
             }

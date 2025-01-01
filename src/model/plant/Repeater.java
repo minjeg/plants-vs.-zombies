@@ -6,6 +6,7 @@ import model.zombie.Zombie;
 import view.ingame.AudioPlayer;
 
 import java.io.File;
+import java.util.List;
 import java.util.Random;
 
 public class Repeater extends Plant {
@@ -24,7 +25,7 @@ public class Repeater extends Plant {
     public Repeater() {
         super(300, 1500);
         setState(State.IDLE);
-        timer = getPerformGap();
+        timer = (int) (Math.random() * getPerformGap());
     }
 
     @Override
@@ -33,39 +34,24 @@ public class Repeater extends Plant {
             gameModel.setPlant(row, col, null);
             return;
         }
+        List<Zombie> zombies = gameModel.getZombies(row);
+        Zombie zombie = GameModel.binarySearchFrontZombie(zombies, 0, zombies.size() - 1, (col + 0.5) * gameModel.getBlockWidth());
         if (getState() == State.IDLE) {
-            for(Zombie zombie : gameModel.getZombies(row)) {
-                if(zombie.isDead()) continue;
-                int x = zombie.getX();
-                if(x >= (col + 0.5) * gameModel.getBlockWidth()
-                        && x < gameModel.getWidth() * 1.1) {
-                    setState(State.SHOOTING);
-                    timer = getPerformGap();
-                    break;
-                }
+            if (zombie != null && zombie.getX() < gameModel.getWidth() * 1.1) {
+                setState(State.SHOOTING);
             }
         } else if (getState() == State.SHOOTING) {
-            boolean isDone = true;
-            for(Zombie zombie : gameModel.getZombies(row)) {
-                if(zombie.isDead()) continue;
-                int x = zombie.getX();
-                if(x >= (col + 0.5) * gameModel.getBlockWidth()
-                        && x < gameModel.getWidth() * 1.1) {
-                    isDone = false;
-                    break;
-                }
-            }
             timer -= gameModel.getUpdateGap();
-            if (isDone) {
+            if (zombie == null || zombie.getX() > gameModel.getWidth() * 1.1)
                 setState(State.IDLE);
-            } else if (timer <= 0) {
+            else if (timer <= 0) {
                 shootPlayer[new Random().nextInt(0, 2)].start();
-                gameModel.addBullet(row, new Pea((col + 1) * gameModel.getWidth() / gameModel.getCols()));
+                gameModel.addBullet(row, new Pea((col + 0.8) * gameModel.getWidth() / gameModel.getCols()));
                 if (flag) {
-                    timer = getPerformGap() - 100;
+                    timer += getPerformGap() - 140;
                     flag = false;
                 } else {
-                    timer = 100;
+                    timer += 140;
                     flag = true;
                 }
             }

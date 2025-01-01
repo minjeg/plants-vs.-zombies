@@ -27,14 +27,12 @@ public class Chomper extends Plant {
         }
         if (getState() == State.IDLE) {
             List<Zombie> zombies = gameModel.getZombies(row);
-            for (Zombie zombie : zombies) {
-                if(zombie.isDead()) continue;
-                if (zombie.getX() <= (col + 2) * gameModel.getBlockWidth()
-                        && zombie.getX() < gameModel.getWidth() * 1.05) {
-                    setState(State.ATTACK);
-                    timer = 1000;
-                    break;
-                }
+            Zombie zombie = GameModel.binarySearchFrontZombie(zombies, 0, zombies.size() - 1,
+                    (col + 0.5) * gameModel.getBlockWidth());
+            if (zombie != null && zombie.getX() < (col + 2) * gameModel.getBlockWidth()
+                    && zombie.getX() < gameModel.getWidth() * 1.05) {
+                setState(State.ATTACK);
+                timer = 1000;
             }
         } else {
             timer -= gameModel.getUpdateGap();
@@ -42,13 +40,11 @@ public class Chomper extends Plant {
                 if (getState() == State.ATTACK) {
                     chompPlayer.start();
                     List<Zombie> zombies = gameModel.getZombies(row);
-                    for (Zombie zombie : zombies) {
-                        if (zombie.getX() <= (col + 2) * gameModel.getBlockWidth()) {
-                            zombie.setState(Zombie.State.TOTALLY_DEAD);
-                            setState(State.CHEW);
-                            timer = getPerformGap() - 2000;
-                            break;
-                        }
+                    Zombie zombie = GameModel.binarySearchFrontZombie(zombies, 0, zombies.size() - 1, (col + 0.5) * gameModel.getBlockWidth());
+                    if (zombie != null && zombie.getX() <= (col + 2) * gameModel.getBlockWidth()) {
+                        zombie.setState(Zombie.State.TOTALLY_DEAD);
+                        setState(State.CHEW);
+                        timer = getPerformGap() - 2000;
                     }
                     if (getState() == State.ATTACK)
                         setState(State.IDLE);

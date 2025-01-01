@@ -6,7 +6,6 @@ import model.zombie.Zombie;
 import view.ingame.AudioPlayer;
 
 import javax.swing.*;
-import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
@@ -20,7 +19,7 @@ public abstract class Bullet implements Serializable {
     private AudioPlayer coneHitPlayer;
     private AudioPlayer ironShieldHitPlayer;
 
-    public Bullet(int x, int speed, int damage) {
+    public Bullet(double x, int speed, int damage) {
         this.x = x;
         this.speed = speed;
         this.damage = damage;
@@ -35,25 +34,23 @@ public abstract class Bullet implements Serializable {
         }
         //子弹击中僵尸
         List<Zombie> zombies = gameModel.getZombies(row);
-        for (Zombie zombie : zombies) {
-            if(zombie.isDead()) continue;
-            if (Math.abs(zombie.getX() - this.getX()) < 10) {
-                zombie.takeDamage(this.getDamage());
-                gameModel.getBullets(row).remove(index);
-                if(zombie instanceof BucketheadZombie
-                        && ((BucketheadZombie) zombie).withBucket())
-                    ironShieldHitPlayer.start();
-                else
-                    soundPlayer.start();
-                return true;
-            }
+        Zombie zombie = GameModel.binarySearchFrontZombie(zombies, 0, zombies.size() - 1, x);
+        if (zombie != null && !zombie.isDead() && Math.abs(zombie.getX() - this.getX()) < 20) {
+            zombie.takeDamage(this.getDamage());
+            gameModel.getBullets(row).remove(index);
+            if (zombie instanceof BucketheadZombie
+                    && ((BucketheadZombie) zombie).withBucket())
+                ironShieldHitPlayer.start();
+            else
+                soundPlayer.start();
+            return true;
         }
         //更新子弹位置
         x += 1.0 * gameModel.getUpdateGap() * gameModel.getWidth() / speed;
         return false;
     }
 
-    public int getX() {
+    public double getX() {
         return (int) x;
     }
 

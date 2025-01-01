@@ -38,7 +38,7 @@ public class Sun implements Serializable {
         this.state = State.IDLE;
     }
 
-    //返回当前阳光是否超时
+    /// 返回当前阳光是否应当被删除（超时）
     public boolean update(GameModel gameModel, int index) {
         timer += gameModel.getUpdateGap();
         //阳光超时

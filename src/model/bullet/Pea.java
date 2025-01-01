@@ -6,7 +6,7 @@ import java.io.File;
 import java.util.Random;
 
 public class Pea extends Bullet {
-    public Pea(int x) {
+    public Pea(double x) {
         super(x, 1500, 20);
         setCurrentImagePath("images/Bullet/pea.gif");
         setSoundPlayer(AudioPlayer

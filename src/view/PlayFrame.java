@@ -1,19 +1,15 @@
 package view;
 
-import model.Level;
 import view.award.AwardPanel;
 import view.ingame.GamePanel;
-import view.intromenu.ExitGameButton;
 import view.intromenu.MenuPanel;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class PlayFrame extends JFrame {
-    private MenuPanel menuPanel = new MenuPanel(this);
-    private GamePanel gamePanel = new GamePanel(this);
-    private AwardPanel awardPanel = new AwardPanel(this);
+    private final MenuPanel menuPanel = new MenuPanel(this);
+    private final GamePanel gamePanel = new GamePanel(this);
+    private final AwardPanel awardPanel = new AwardPanel(this);
 
     public PlayFrame() {
         this.setVisible(true);

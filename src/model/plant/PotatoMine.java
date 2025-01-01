@@ -26,50 +26,48 @@ public class PotatoMine extends Plant {
 
     @Override
     public void takeDamage(int damage) {
-        if(getState() == State.IDLE)
+        if (getState() == State.IDLE)
             super.takeDamage(damage);
     }
 
     @Override
     public void update(GameModel gameModel, int row, int col) {
-        if(isDead()) {
+        if (isDead()) {
             gameModel.setPlant(row, col, null);
             return;
         }
-        if(getState() == State.IDLE) {
+        if (getState() == State.IDLE) {
             timer -= gameModel.getUpdateGap();
-            if(timer <= 0) {
+            if (timer <= 0) {
                 timer = 1500;
                 setState(State.RISE);
             }
-        } else if(getState() == State.RISE) {
-            if(riseSoundEnabled) {
+        } else if (getState() == State.RISE) {
+            if (riseSoundEnabled) {
                 riseSoundPlayer.start();
                 riseSoundEnabled = false;
             }
             timer -= gameModel.getUpdateGap();
-            if(timer <= 0)
+            if (timer <= 0)
                 setState(State.ARMED);
-        } else if(getState() == State.ARMED) {
+        } else if (getState() == State.ARMED) {
             List<Zombie> zombies = gameModel.getZombies(row);
-            for (Zombie zombie : zombies) {
-                if(Math.abs(zombie.getX() - (col + 0.5) * gameModel.getBlockWidth()) <= 20) {
-                    for(Zombie z : zombies) {
-                        if(Math.abs(z.getX() - (col + 0.5) * gameModel.getBlockWidth()) <= 20)
-                            z.setState(Zombie.State.TOTALLY_DEAD);
-                    }
-                    setState(State.EXPLODING);
-                    timer = 1000;
-                    return;
+            Zombie zombie = GameModel.binarySearchFrontZombie(zombies, 0, zombies.size() - 1, (col + 0.5) * gameModel.getBlockWidth());
+            if (zombie != null && Math.abs(zombie.getX() - (col + 0.5) * gameModel.getBlockWidth()) <= 20) {
+                for (Zombie z : zombies) {
+                    if (Math.abs(z.getX() - (col + 0.5) * gameModel.getBlockWidth()) <= 20)
+                        z.setState(Zombie.State.TOTALLY_DEAD);
                 }
+                setState(State.EXPLODING);
+                timer = 1000;
             }
-        } else if(getState() == State.EXPLODING) {
-            if(explodeSoundEnabled) {
+        } else if (getState() == State.EXPLODING) {
+            if (explodeSoundEnabled) {
                 explosionPlayer.start();
                 explodeSoundEnabled = false;
             }
             timer -= gameModel.getUpdateGap();
-            if(timer <= 0)
+            if (timer <= 0)
                 gameModel.setPlant(row, col, null);
         }
     }
@@ -77,13 +75,13 @@ public class PotatoMine extends Plant {
     @Override
     protected void setState(State state) {
         super.setState(state);
-        if(state == State.IDLE)
+        if (state == State.IDLE)
             setCurrentImagePath("images/Plant/PotatoMine/under.gif");
-        else if(state == State.RISE)
+        else if (state == State.RISE)
             setCurrentImagePath("images/Plant/PotatoMine/rise.gif");
-        else if(state == State.ARMED)
+        else if (state == State.ARMED)
             setCurrentImagePath("images/Plant/PotatoMine/armed.gif");
-        else if(state == State.EXPLODING)
+        else if (state == State.EXPLODING)
             setCurrentImagePath("images/Plant/PotatoMine/Explode.png");
     }
 }

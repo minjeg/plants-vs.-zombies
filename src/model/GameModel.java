@@ -2,6 +2,8 @@ package model;
 
 import model.bullet.Bullet;
 import model.plant.Plant;
+import model.plant.Repeater;
+import model.plant.Sunflower;
 import model.seed.*;
 import model.zombie.Zombie;
 
@@ -42,9 +44,6 @@ public class GameModel implements Serializable {
     private final int width, height;
     private final int blockWidth, blockHeight;
 
-    private boolean grabShovel = false;
-    private PlantSeed seedInHand = null;
-
     public enum State {READY, PAUSED, RUNNING, WIN, LOSE}
 
     public GameModel(int width, int height, int updateGap, Level level) {
@@ -65,17 +64,11 @@ public class GameModel implements Serializable {
             lawnMowers.add(new LawnMower());
             for (int j = 0; j < cols; ++j)
                 plants.get(i).add(null);
+            setPlant(i,0,new Sunflower());
+            setPlant(i,1,new Sunflower());
+            setPlant(i,2,new Repeater());
+            setPlant(i,3,new Repeater());
         }
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                if (state == State.RUNNING)
-                    update();
-                else if (state == State.WIN || state == State.LOSE)
-                    this.cancel();
-            }
-        }, updateGap, updateGap);
     }
 
     public static void save(GameModel gameModel, String name) {
@@ -101,8 +94,29 @@ public class GameModel implements Serializable {
         }
     }
 
+    public static Zombie binarySearchFrontZombie(List<Zombie> zombies, int left, int right, double x) {
+        int mid = left + (right - left) / 2;
+        if (left > right)
+            return null;
+        if (left == right) {
+            Zombie zombie = zombies.get(left);
+            while (true) {
+                if (zombie.getX() < x || zombie.isDead())
+                    if (left + 1 < zombies.size())
+                        zombie = zombies.get(left + 1);
+                    else
+                        return null;
+                else
+                    return zombie;
+            }
+        }
+        if (x < zombies.get(mid).getX())
+            return binarySearchFrontZombie(zombies, left, mid, x);
+        return binarySearchFrontZombie(zombies, mid + 1, right, x);
+    }
+
     /// 更新植物、僵尸、子弹、太阳、种子的数据
-    private synchronized void update() {
+    public void update() {
         //植物更新
         Thread plantThread = new Thread(() -> {
             for (int row = 0; row < rows; ++row) {
@@ -170,6 +184,7 @@ public class GameModel implements Serializable {
                     totalZombieHealth += zombie.getHealth();
                 }
             }
+            rowZombies.sort(Comparator.comparingDouble(Zombie::getX));
         }
         //关卡更新
         level.update(this);
@@ -192,7 +207,7 @@ public class GameModel implements Serializable {
 
     public void setState(State state) {
         this.state = state;
-        if(state == State.LOSE || state == State.WIN)
+        if (state == State.LOSE || state == State.WIN)
             save(null, "gamesave/save");
     }
 
@@ -202,22 +217,6 @@ public class GameModel implements Serializable {
 
     public void continueGame() {
         state = State.RUNNING;
-    }
-
-    public boolean isGrabShovel() {
-        return grabShovel;
-    }
-
-    public void setGrabShovel(boolean grabShovel) {
-        this.grabShovel = grabShovel;
-    }
-
-    public PlantSeed getSeedInHand() {
-        return seedInHand;
-    }
-
-    public void setSeedInHand(PlantSeed seedInHand) {
-        this.seedInHand = seedInHand;
     }
 
     public Plant getPlant(int row, int col) {

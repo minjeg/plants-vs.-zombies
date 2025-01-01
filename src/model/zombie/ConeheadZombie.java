@@ -7,7 +7,7 @@ import java.util.Random;
 public class ConeheadZombie extends Zombie {
     private boolean withCone = true;
 
-    private int randNum = new Random().nextInt(0, 2);
+    private final int randNum = new Random().nextInt(0, 2);
 
     public ConeheadZombie() {
         super(640, defaultX, 50000, 100);
@@ -34,9 +34,9 @@ public class ConeheadZombie extends Zombie {
                 setCurrentImagePath("images/Zombie/" + s + "/walk2.gif");
         } else if (state == State.EATING) {
             setCurrentImagePath("images/Zombie/" + s + "/eat.gif");
-        } else if(state == State.DEAD) {
+        } else if (state == State.DEAD) {
             setCurrentImagePath("images/Zombie/BasicZombie/death.gif");
-        } else if(state == State.BOOMED) {
+        } else if (state == State.BOOMED) {
             setCurrentImagePath("images/Zombie/BoomDie.gif");
         }
     }

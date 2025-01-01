@@ -19,8 +19,8 @@ public abstract class Zombie implements Serializable {
     private State state = State.WALKING;
     private String currentImagePath;
 
-    private AudioPlayer[] eatSoundPlayer = new AudioPlayer[3];
-    private AudioPlayer gulpSoundPlayer;
+    private final AudioPlayer[] eatSoundPlayer = new AudioPlayer[3];
+    private final AudioPlayer gulpSoundPlayer;
 
     private int soundPlayTimer = 0;
 
@@ -41,7 +41,7 @@ public abstract class Zombie implements Serializable {
 
     public enum State {WALKING, EATING, DEAD, BOOMED, TOTALLY_DEAD}
 
-    protected Zombie(int health, int x, int speed, int damage) {
+    protected Zombie(int health, double x, int speed, int damage) {
         this.health = health;
         this.x = x;
         this.speed = speed;
@@ -55,7 +55,7 @@ public abstract class Zombie implements Serializable {
         }
         if (state == State.WALKING) {
             if (x == defaultX)
-                x = gameModel.getWidth() * (1.1 + Math.random() / 10);
+                x = gameModel.getWidth() * (1.05 + Math.random() / 10);
             x -= 1.0 * gameModel.getUpdateGap() * gameModel.getWidth() / speed;
         }
         int col = getClosestColumn(gameModel);
@@ -64,7 +64,7 @@ public abstract class Zombie implements Serializable {
             if (gameModel.getLawnMower(row) != null) {
                 gameModel.getLawnMower(row).setState(LawnMower.State.ON);
                 takeDamage(health);
-            } else if(col < -1) {
+            } else if (col < -1) {
                 gameModel.setState(GameModel.State.LOSE);
                 return false;
             }
@@ -116,7 +116,7 @@ public abstract class Zombie implements Serializable {
         return damage;
     }
 
-    public int getX() {
+    public double getX() {
         return (int) x;
     }
 
