@@ -78,19 +78,27 @@ public class GameModel implements Serializable {
         }, updateGap, updateGap);
     }
 
-    public static void save(GameModel gameModel, String name) throws IOException {
-        FileOutputStream fileOutputStream = new FileOutputStream(name);
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-        objectOutputStream.writeObject(gameModel);
-        objectOutputStream.close();
+    public static void save(GameModel gameModel, String name) {
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(name);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(gameModel);
+            objectOutputStream.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public static GameModel load(String name) throws IOException, ClassNotFoundException {
-        FileInputStream fileInputStream = new FileInputStream(name);
-        ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-        GameModel gameModel = (GameModel) objectInputStream.readObject();
-        objectInputStream.close();
-        return gameModel;
+    public static GameModel load(String name) {
+        try {
+            FileInputStream fileInputStream = new FileInputStream(name);
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+            GameModel gameModel = (GameModel) objectInputStream.readObject();
+            objectInputStream.close();
+            return gameModel;
+        } catch (IOException | ClassNotFoundException e) {
+            return null;
+        }
     }
 
     /// 更新植物、僵尸、子弹、太阳、种子的数据
@@ -184,6 +192,8 @@ public class GameModel implements Serializable {
 
     public void setState(State state) {
         this.state = state;
+        if(state == State.LOSE || state == State.WIN)
+            save(null, "gamesave/save");
     }
 
     public void pauseGame() {
@@ -315,5 +325,9 @@ public class GameModel implements Serializable {
 
     public int getNumOfZombies() {
         return numOfZombies;
+    }
+
+    public Level getLevel() {
+        return level;
     }
 }

@@ -81,7 +81,7 @@ public class MenuPanel extends JPanel implements ActionListener {
         this.state = state;
         if(state == NORMAL) {
             this.setVisible(true);
-            if(BGM_PLAYER.isStoped())
+            if(BGM_PLAYER.isStop())
                 BGM_PLAYER.start();
             startGameButton.setEnabled(true);
             exitGameButton.setEnabled(true);

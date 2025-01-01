@@ -2,7 +2,9 @@ package model;
 
 import model.zombie.Zombie;
 
-public abstract class ZombieType {
+import java.io.Serializable;
+
+public abstract class ZombieType implements Serializable {
     private int weight;
     private final int rank;
     private final int level;

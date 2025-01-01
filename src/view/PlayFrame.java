@@ -12,7 +12,7 @@ import java.awt.event.ActionListener;
 
 public class PlayFrame extends JFrame {
     private MenuPanel menuPanel = new MenuPanel(this);
-    private GamePanel gamePanel = new GamePanel(this, new Level(50, 20));
+    private GamePanel gamePanel = new GamePanel(this);
     private AwardPanel awardPanel = new AwardPanel(this);
 
     public PlayFrame() {
@@ -35,7 +35,7 @@ public class PlayFrame extends JFrame {
     }
 
     public void startPlay() {
-        gamePanel.setState(GamePanel.READY);
+        gamePanel.setState(GamePanel.LOADING);
     }
 
     public void returnToMenu() {
