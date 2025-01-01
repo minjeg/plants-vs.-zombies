@@ -64,10 +64,6 @@ public class GameModel implements Serializable {
             lawnMowers.add(new LawnMower());
             for (int j = 0; j < cols; ++j)
                 plants.get(i).add(null);
-            setPlant(i,0,new Sunflower());
-            setPlant(i,1,new Sunflower());
-            setPlant(i,2,new Repeater());
-            setPlant(i,3,new Repeater());
         }
     }
 
