@@ -205,7 +205,7 @@ public class Level implements Serializable {
 
     @Override
     public Level clone() {
-        return new Level(initialSun,totalWave);
+        return new Level(initialSun, totalWave);
     }
 
     public boolean isFlagWave() {

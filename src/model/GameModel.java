@@ -9,15 +9,14 @@ import java.awt.*;
 import java.io.*;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GameModel implements Serializable {
-    private List<List<Plant>> plants = new ArrayList<>();
-    private List<List<Zombie>> zombies = new ArrayList<>();
-    private List<List<Bullet>> bullets = new ArrayList<>();
-    private List<LawnMower> lawnMowers = new ArrayList<>();
-    private List<PlantSeed> seedBank = new ArrayList<>();
-    private List<Sun> suns = new ArrayList<>();
+    private final List<List<Plant>> plants = new ArrayList<>();
+    private final List<List<Zombie>> zombies = new ArrayList<>();
+    private final List<List<Bullet>> bullets = new ArrayList<>();
+    private final List<LawnMower> lawnMowers = new ArrayList<>();
+    private final List<PlantSeed> seedBank = new ArrayList<>();
+    private final List<Sun> suns = new ArrayList<>();
 
     private final Level level;
     private Level currentLevel;
@@ -32,13 +31,6 @@ public class GameModel implements Serializable {
     private final int rows, cols;
     private final int width, height;
     private final int blockWidth, blockHeight;
-
-    public static GameModel preparingModel;
-
-    static {
-        preparingModel = new GameModel(720, 500, 30, new Level(50, 20));
-        preparingModel.setState(State.PREPARING);
-    }
 
     public enum State {PREPARING, READY, PAUSED, RUNNING, WIN, LOSE}
 
@@ -69,9 +61,9 @@ public class GameModel implements Serializable {
         fallenSunNumber = 0;
         sunTimer = (long) (4250 + Math.random() * 2740);
         for (int i = 0; i < rows; ++i) {
-            zombies.add(new CopyOnWriteArrayList<>());
-            plants.add(new CopyOnWriteArrayList<>());
-            bullets.add(new CopyOnWriteArrayList<>());
+            zombies.add(new ArrayList<>());
+            plants.add(new ArrayList<>());
+            bullets.add(new ArrayList<>());
             lawnMowers.add(new LawnMower());
             for (int j = 0; j < cols; ++j)
                 plants.get(i).add(null);
@@ -95,9 +87,9 @@ public class GameModel implements Serializable {
             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
             GameModel gameModel = (GameModel) objectInputStream.readObject();
             objectInputStream.close();
-            return gameModel == null ? preparingModel : gameModel;
+            return gameModel;
         } catch (IOException | ClassNotFoundException e) {
-            return preparingModel;
+            return null;
         }
     }
 
@@ -214,17 +206,6 @@ public class GameModel implements Serializable {
 
     public void setState(State state) {
         this.state = state;
-        if(state == State.WIN || state == State.LOSE) {
-            save(preparingModel, "gamesave/save");
-        }
-    }
-
-    public void pauseGame() {
-        state = State.PAUSED;
-    }
-
-    public void continueGame() {
-        state = State.RUNNING;
     }
 
     public Plant getPlant(int row, int col) {
