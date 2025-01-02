@@ -52,10 +52,11 @@ public class PotatoMine extends Plant {
                 setState(State.ARMED);
         } else if (getState() == State.ARMED) {
             List<Zombie> zombies = gameModel.getZombies(row);
-            Zombie zombie = GameModel.binarySearchFrontZombie(zombies, 0, zombies.size() - 1, (col + 0.5) * gameModel.getBlockWidth());
+            Zombie zombie = GameModel.binarySearchFrontZombie(zombies, 0, zombies.size() - 1,
+                    (col + 0.5) * gameModel.getBlockWidth());
             if (zombie != null && Math.abs(zombie.getX() - (col + 0.5) * gameModel.getBlockWidth()) <= 20) {
                 for (Zombie z : zombies) {
-                    if (Math.abs(z.getX() - (col + 0.5) * gameModel.getBlockWidth()) <= 20)
+                    if (Math.abs(z.getX() - (col + 0.5) * gameModel.getBlockWidth()) < 20)
                         z.setState(Zombie.State.TOTALLY_DEAD);
                 }
                 setState(State.EXPLODING);

@@ -34,8 +34,6 @@ public class CherryBomb extends Plant {
                 for (int i = Math.max(row - 1, 0); i <= upper; ++i) {
                     List<Zombie> rowZombies = gameModel.getZombies(i);
                     for (Zombie zombie : rowZombies) {
-                        if (zombie.isDead())
-                            continue;
                         int j = zombie.getClosestColumn(gameModel);
                         if (j >= col - 1 && j <= col + 1)
                             zombie.setState(Zombie.State.BOOMED);

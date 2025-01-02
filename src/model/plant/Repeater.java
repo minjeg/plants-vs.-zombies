@@ -13,7 +13,7 @@ public class Repeater extends Plant {
     private int timer;
     private boolean flag = false;
 
-    private AudioPlayer[] shootPlayer = new AudioPlayer[2];
+    private final AudioPlayer[] shootPlayer = new AudioPlayer[2];
 
     {
         shootPlayer[0] = AudioPlayer.getAudioPlayer(
@@ -35,7 +35,8 @@ public class Repeater extends Plant {
             return;
         }
         List<Zombie> zombies = gameModel.getZombies(row);
-        Zombie zombie = GameModel.binarySearchFrontZombie(zombies, 0, zombies.size() - 1, (col + 0.5) * gameModel.getBlockWidth());
+        Zombie zombie = GameModel.binarySearchFrontZombie(zombies, 0, zombies.size() - 1,
+                (col + 0.5) * gameModel.getBlockWidth());
         if (getState() == State.IDLE) {
             if (zombie != null && zombie.getX() < gameModel.getWidth() * 1.1) {
                 setState(State.SHOOTING);

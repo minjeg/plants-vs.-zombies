@@ -23,10 +23,6 @@ public abstract class PlantSeed implements Serializable {
         return currentCoolDown == 0 && model.getSun() >= cost;
     }
 
-//    boolean isChosen() {
-//        return chosen;
-//    }
-
     public String getImagePath() {
         return imagePath;
     }

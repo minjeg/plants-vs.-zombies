@@ -12,7 +12,7 @@ import java.util.Random;
 public class Peashooter extends Plant {
     private int timer;
 
-    private AudioPlayer[] shootPlayer = new AudioPlayer[2];
+    private final AudioPlayer[] shootPlayer = new AudioPlayer[2];
 
     {
         shootPlayer[0] = AudioPlayer.getAudioPlayer(

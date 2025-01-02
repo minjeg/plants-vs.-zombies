@@ -10,7 +10,7 @@ import java.util.List;
 public class Chomper extends Plant {
     private int timer;
 
-    private AudioPlayer chompPlayer = AudioPlayer.getAudioPlayer(
+    private final AudioPlayer chompPlayer = AudioPlayer.getAudioPlayer(
             new File("sounds/audio/bigchomp.wav"), AudioPlayer.NORMAL);
 
     public Chomper() {
@@ -40,8 +40,9 @@ public class Chomper extends Plant {
                 if (getState() == State.ATTACK) {
                     chompPlayer.start();
                     List<Zombie> zombies = gameModel.getZombies(row);
-                    Zombie zombie = GameModel.binarySearchFrontZombie(zombies, 0, zombies.size() - 1, (col + 0.5) * gameModel.getBlockWidth());
-                    if (zombie != null && zombie.getX() <= (col + 2) * gameModel.getBlockWidth()) {
+                    Zombie zombie = GameModel.binarySearchFrontZombie(zombies, 0, zombies.size() - 1,
+                            (col + 0.5) * gameModel.getBlockWidth());
+                    if (zombie != null && zombie.getX() < (col + 2) * gameModel.getBlockWidth()) {
                         zombie.setState(Zombie.State.TOTALLY_DEAD);
                         setState(State.CHEW);
                         timer = getPerformGap() - 2000;

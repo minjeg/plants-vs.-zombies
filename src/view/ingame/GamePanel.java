@@ -165,9 +165,11 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         Timer timer = new Timer();
 
         timer.scheduleAtFixedRate(new TimerTask() {
+            private long max = 0;
 
             @Override
             public void run() {
+                long t = System.currentTimeMillis();
                 if (state == WAIT) {
                     repaint();
                     panelUpdate();
@@ -180,6 +182,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
                     repaint();
                     panelUpdate();
                 } else if (state == LOADING || state == PAUSE) {
+//                    System.out.println(max);
                     if (gameModel != null) {
                         panelUpdate();
                         repaint();
@@ -211,6 +214,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
                         repaint();
                     }
                 }
+                max = Math.max(max, System.currentTimeMillis() - t);
             }
         }, updateGap, updateGap);
     }

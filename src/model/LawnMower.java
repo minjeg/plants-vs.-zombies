@@ -38,8 +38,8 @@ public class LawnMower implements Serializable {
         }
     }
 
-    public int getX() {
-        return (int) x;
+    public double getX() {
+        return x;
     }
 
     public String getCurrentImagePath() {

@@ -109,9 +109,11 @@ public class GameModel implements Serializable {
             }
         }
         int mid = left + (right - left) / 2;
-        if (x < zombies.get(mid).getX())
+        if (left == mid)
             return binarySearchFrontZombie(zombies, left, mid, x);
-        return binarySearchFrontZombie(zombies, mid + 1, right, x);
+        if (x < zombies.get(mid).getX())
+            return binarySearchFrontZombie(zombies, left, mid - 1, x);
+        return binarySearchFrontZombie(zombies, mid, right, x);
     }
 
     /// 更新植物、僵尸、子弹、太阳、种子的数据
@@ -209,8 +211,6 @@ public class GameModel implements Serializable {
     }
 
     public Plant getPlant(int row, int col) {
-        if (col >= cols)
-            return null;
         return plants.get(row).get(col);
     }
 

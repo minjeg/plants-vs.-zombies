@@ -19,7 +19,7 @@ public abstract class Bullet implements Serializable {
     private AudioPlayer coneHitPlayer;
     private AudioPlayer ironShieldHitPlayer;
 
-    public Bullet(double x, int speed, int damage) {
+    protected Bullet(double x, int speed, int damage) {
         this.x = x;
         this.speed = speed;
         this.damage = damage;
@@ -35,7 +35,7 @@ public abstract class Bullet implements Serializable {
         //子弹击中僵尸
         List<Zombie> zombies = gameModel.getZombies(row);
         Zombie zombie = GameModel.binarySearchFrontZombie(zombies, 0, zombies.size() - 1, x);
-        if (zombie != null && !zombie.isDead() && Math.abs(zombie.getX() - this.getX()) < 20) {
+        if (zombie != null && Math.abs(zombie.getX() - this.getX()) < 20) {
             zombie.takeDamage(this.getDamage());
             gameModel.getBullets(row).remove(index);
             if (zombie instanceof BucketheadZombie

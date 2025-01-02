@@ -17,7 +17,7 @@ public class Sun implements Serializable {
     private final String currentImagePath = "images/Sun.gif";
     private int timer = 0;
 
-    private AudioPlayer soundPlayer = AudioPlayer
+    private final AudioPlayer soundPlayer = AudioPlayer
             .getAudioPlayer(new File("sounds/audio/points.wav"),
                     AudioPlayer.NORMAL);
 

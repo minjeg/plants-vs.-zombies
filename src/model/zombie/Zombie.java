@@ -13,7 +13,7 @@ import java.util.Random;
 public abstract class Zombie implements Serializable {
     private int health;
     private double x;
-    public static final int defaultX = -1000;
+    protected static final int defaultX = -1000;
     private final int speed;//从右边界到左边界耗费毫秒数
     private final int damage;//每秒伤害
     private State state = State.WALKING;
@@ -72,7 +72,7 @@ public abstract class Zombie implements Serializable {
         //根据僵尸状态、前方是否有植物进行数据、状态更新
         if (health <= 0)
             setState(State.DEAD);
-        Plant plant = col >= 0 ? gameModel.getPlant(row, col) : null;
+        Plant plant = col >= 0 && col < gameModel.getCols() ? gameModel.getPlant(row, col) : null;
         if (state == State.WALKING && plant != null
                 && Math.abs(x - (col + 0.5) * gameModel.getBlockWidth()) < 20)
             setState(State.EATING);
