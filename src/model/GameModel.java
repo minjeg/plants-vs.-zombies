@@ -33,6 +33,13 @@ public class GameModel implements Serializable {
     private final int width, height;
     private final int blockWidth, blockHeight;
 
+    public static GameModel preparingModel;
+
+    static {
+        preparingModel = new GameModel(720, 500, 30, new Level(50, 20));
+        preparingModel.setState(State.PREPARING);
+    }
+
     public enum State {PREPARING, READY, PAUSED, RUNNING, WIN, LOSE}
 
     public GameModel(int width, int height, int updateGap, Level level) {
@@ -88,9 +95,9 @@ public class GameModel implements Serializable {
             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
             GameModel gameModel = (GameModel) objectInputStream.readObject();
             objectInputStream.close();
-            return gameModel;
+            return gameModel == null ? preparingModel : gameModel;
         } catch (IOException | ClassNotFoundException e) {
-            return null;
+            return preparingModel;
         }
     }
 
@@ -207,8 +214,9 @@ public class GameModel implements Serializable {
 
     public void setState(State state) {
         this.state = state;
-        if (state == State.LOSE || state == State.WIN)
-            save(null, "gamesave/save");
+        if(state == State.WIN || state == State.LOSE) {
+            save(preparingModel, "gamesave/save");
+        }
     }
 
     public void pauseGame() {
@@ -332,12 +340,12 @@ public class GameModel implements Serializable {
 
     public void reset() {
         setState(State.PREPARING);
-        seedBank = null;
-        plants = null;
-        zombies = null;
-        bullets = null;
-        suns = null;
-        lawnMowers = null;
+        seedBank.clear();
+        plants.clear();
+        zombies.clear();
+        bullets.clear();
+        suns.clear();
+        lawnMowers.clear();
         initialize();
         setState(State.READY);
     }

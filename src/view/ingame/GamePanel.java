@@ -142,6 +142,8 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         this.addMouseMotionListener(this);
 
         level = new Level(50, 20);
+        gameModel = new GameModel(720, 500, 30, level);
+        gameModel.reset();
 
         backToMenuDialog = new BackToMenuDialog(this);
         backToMenuDialog.setVisible(false);
@@ -721,8 +723,9 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
             pauseMenu.enableAll();
         } else if (source instanceof RestartConfirmButton
                 || source instanceof LoseConfirmButton) {
-//            gameModel.reset();
-//            level = gameModel.getLevel();
+            gameModel.reset();
+            level = gameModel.getLevel();
+            GameModel.save(gameModel, "gamesave/save");
             this.setState(READY);
         } else if (source instanceof LoadGameConfirmButton) {
             this.setState(START);
@@ -790,7 +793,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         this.setVisible(true);
         gameModel = GameModel.load("gamesave/save");
         hideComponents();
-        if(gameModel != null) {
+        if(gameModel.getState() != GameModel.State.PREPARING) {
             level = gameModel.getLevel();
             loadGameConfirmPanel.setVisible(true);
             gameModel.setState(GameModel.State.PAUSED);
@@ -802,6 +805,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
     private void startGame() {
         hideComponents();
         pauseButton.setVisible(true);
+        pauseButton.setEnabled(true);
         currentBGMPlayer.continuePlay();
         gameModel.setState(GameModel.State.RUNNING);
     }
