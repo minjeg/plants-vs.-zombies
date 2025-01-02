@@ -10,9 +10,9 @@ import java.util.List;
 public class PotatoMine extends Plant {
     private int timer;
 
-    private AudioPlayer riseSoundPlayer = AudioPlayer.getAudioPlayer(
+    private final AudioPlayer riseSoundPlayer = AudioPlayer.getAudioPlayer(
             new File("sounds/audio/dirt_rise.wav"), AudioPlayer.NORMAL);
-    private AudioPlayer explosionPlayer = AudioPlayer.getAudioPlayer(
+    private final AudioPlayer explosionPlayer = AudioPlayer.getAudioPlayer(
             new File("sounds/audio/potato_mine.wav"), AudioPlayer.NORMAL);
 
     private boolean riseSoundEnabled = true;

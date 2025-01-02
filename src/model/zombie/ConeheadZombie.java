@@ -41,9 +41,8 @@ public class ConeheadZombie extends Zombie {
         }
     }
 
-    @Override
-    public int getImageX() {
-        return super.getImageX();
+    public boolean withCone() {
+        return withCone;
     }
 
     @Override

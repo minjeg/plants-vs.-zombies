@@ -2,8 +2,6 @@ package model;
 
 import model.bullet.Bullet;
 import model.plant.Plant;
-import model.plant.Repeater;
-import model.plant.Sunflower;
 import model.seed.*;
 import model.zombie.Zombie;
 
@@ -14,27 +12,18 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GameModel implements Serializable {
-    private final List<List<Plant>> plants = new ArrayList<>();
-    private final List<List<Zombie>> zombies = new ArrayList<>();
-    private final List<List<Bullet>> bullets = new ArrayList<>();
-    private final List<LawnMower> lawnMowers = new ArrayList<>();
-    private final List<PlantSeed> seedBank = new ArrayList<>();
-    private final List<Sun> suns = new ArrayList<>();
-
-    {
-        seedBank.add(new PeashooterSeed());
-        seedBank.add(new SunflowerSeed());
-        seedBank.add(new CherryBombSeed());
-        seedBank.add(new WallNutSeed());
-        seedBank.add(new PotatoMineSeed());
-        seedBank.add(new ChomperSeed());
-        seedBank.add(new RepeaterSeed());
-    }
+    private List<List<Plant>> plants = new ArrayList<>();
+    private List<List<Zombie>> zombies = new ArrayList<>();
+    private List<List<Bullet>> bullets = new ArrayList<>();
+    private List<LawnMower> lawnMowers = new ArrayList<>();
+    private List<PlantSeed> seedBank = new ArrayList<>();
+    private List<Sun> suns = new ArrayList<>();
 
     private final Level level;
+    private Level currentLevel;
     private int sun;
-    private int fallenSunNumber = 0;
-    private long sunTimer = (long) (4250 + Math.random() * 2740);
+    private int fallenSunNumber;
+    private long sunTimer;
     private int totalZombieHealth;
     private int numOfZombies;
     private final int updateGap;
@@ -44,19 +33,34 @@ public class GameModel implements Serializable {
     private final int width, height;
     private final int blockWidth, blockHeight;
 
-    public enum State {READY, PAUSED, RUNNING, WIN, LOSE}
+    public enum State {PREPARING, READY, PAUSED, RUNNING, WIN, LOSE}
 
     public GameModel(int width, int height, int updateGap, Level level) {
+        setState(State.PREPARING);
         this.width = width;
         this.height = height;
         this.updateGap = updateGap;
         this.level = level;
         this.rows = level.getRows();
         this.cols = level.getCols();
-        this.sun = level.getInitialSun();
         this.blockWidth = width / cols;
         this.blockHeight = height / rows;
+        initialize();
+        setState(State.READY);
+    }
 
+    private void initialize() {
+        seedBank.add(new PeashooterSeed());
+        seedBank.add(new SunflowerSeed());
+        seedBank.add(new CherryBombSeed());
+        seedBank.add(new WallNutSeed());
+        seedBank.add(new PotatoMineSeed());
+        seedBank.add(new ChomperSeed());
+        seedBank.add(new RepeaterSeed());
+        currentLevel = level.clone();
+        sun = level.getInitialSun();
+        fallenSunNumber = 0;
+        sunTimer = (long) (4250 + Math.random() * 2740);
         for (int i = 0; i < rows; ++i) {
             zombies.add(new CopyOnWriteArrayList<>());
             plants.add(new CopyOnWriteArrayList<>());
@@ -91,7 +95,6 @@ public class GameModel implements Serializable {
     }
 
     public static Zombie binarySearchFrontZombie(List<Zombie> zombies, int left, int right, double x) {
-        int mid = left + (right - left) / 2;
         if (left > right)
             return null;
         if (left == right) {
@@ -106,6 +109,7 @@ public class GameModel implements Serializable {
                     return zombie;
             }
         }
+        int mid = left + (right - left) / 2;
         if (x < zombies.get(mid).getX())
             return binarySearchFrontZombie(zombies, left, mid, x);
         return binarySearchFrontZombie(zombies, mid + 1, right, x);
@@ -123,6 +127,7 @@ public class GameModel implements Serializable {
                 }
             }
         });
+        plantThread.start();
         //种子更新
         Thread seedThread = new Thread(() -> {
             for (PlantSeed seed : seedBank)
@@ -138,7 +143,6 @@ public class GameModel implements Serializable {
             }
         });
         lawnMowerThread.start();
-        plantThread.start();
         //子弹更新
         Thread bulletThread = new Thread(() -> {
             for (int row = 0; row < rows; ++row) {
@@ -166,6 +170,8 @@ public class GameModel implements Serializable {
             }
         });
         sunThread.start();
+        //关卡更新
+        currentLevel.update(this);
         //僵尸更新
         numOfZombies = 0;
         totalZombieHealth = 0;
@@ -182,8 +188,6 @@ public class GameModel implements Serializable {
             }
             rowZombies.sort(Comparator.comparingDouble(Zombie::getX));
         }
-        //关卡更新
-        level.update(this);
         //保证数据都完成更新
         try {
             plantThread.join();
@@ -323,6 +327,18 @@ public class GameModel implements Serializable {
     }
 
     public Level getLevel() {
-        return level;
+        return currentLevel;
+    }
+
+    public void reset() {
+        setState(State.PREPARING);
+        seedBank = null;
+        plants = null;
+        zombies = null;
+        bullets = null;
+        suns = null;
+        lawnMowers = null;
+        initialize();
+        setState(State.READY);
     }
 }

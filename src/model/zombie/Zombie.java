@@ -117,7 +117,7 @@ public abstract class Zombie implements Serializable {
     }
 
     public double getX() {
-        return (int) x;
+        return x;
     }
 
     public void setState(State state) {

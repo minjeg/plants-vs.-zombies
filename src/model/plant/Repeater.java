@@ -48,10 +48,10 @@ public class Repeater extends Plant {
                 shootPlayer[new Random().nextInt(0, 2)].start();
                 gameModel.addBullet(row, new Pea((col + 0.8) * gameModel.getWidth() / gameModel.getCols()));
                 if (flag) {
-                    timer += getPerformGap() - 140;
+                    timer += getPerformGap() - 120;
                     flag = false;
                 } else {
-                    timer += 140;
+                    timer += 120;
                     flag = true;
                 }
             }

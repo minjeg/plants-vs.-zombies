@@ -25,7 +25,7 @@ public abstract class Bullet implements Serializable {
         this.damage = damage;
     }
 
-    //返回子弹是否被移除
+    /// 返回子弹是否应被移除
     public boolean update(GameModel gameModel, int row, int index) {
         //子弹超出范围
         if (x < 0 || x > gameModel.getWidth() * 1.2) {
@@ -51,7 +51,7 @@ public abstract class Bullet implements Serializable {
     }
 
     public double getX() {
-        return (int) x;
+        return x;
     }
 
     public int getDamage() {

@@ -47,11 +47,6 @@ public class BucketheadZombie extends Zombie {
     }
 
     @Override
-    public int getImageX() {
-        return super.getImageX();
-    }
-
-    @Override
     public int getImageY(int row) {
         return super.getImageY(row) - 15;
     }
