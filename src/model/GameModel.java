@@ -26,7 +26,7 @@ public class GameModel implements Serializable {
     private int totalZombieHealth;
     private int numOfZombies;
     private final int updateGap;
-    private State state = State.READY;
+    private State state;
 
     private final int rows, cols;
     private final int width, height;
