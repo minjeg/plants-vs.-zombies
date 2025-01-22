@@ -100,8 +100,8 @@ public class GameModel implements Serializable {
             Zombie zombie = zombies.get(left);
             while (true) {
                 if (zombie.getX() < x || zombie.isDead())
-                    if (left + 1 < zombies.size())
-                        zombie = zombies.get(left + 1);
+                    if (++left < zombies.size())
+                        zombie = zombies.get(left);
                     else
                         return null;
                 else
