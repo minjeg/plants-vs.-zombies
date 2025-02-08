@@ -84,17 +84,22 @@ model部分主要负责游戏数据的存储和处理以及关卡系统。
 3. 选取某次出怪的行，又称抽取行事件。将受到`lastPicked[i]`和`secondLastPicked[i]`影响后的`rowWeight[i]`称之为平滑权重，记为
    `smoothWeight[i]`。为计算平滑权重，将`lastPicked[i]`对结果的影响因子称为`pLast[i]`，再将`secondLastPicked[i]`对结果的影响因子称为
    `pSecondLast[i]`，通过参考资料中的研究结果，我们知道它们的计算公式是：
-   $$pLast[i]=\frac{6×lastPicked[i]×rowWeight[i]+6×rowWeight[i]-3}{4}$$
+   $$pLast[i]=\frac{6\times lastPicked[i]\times rowWeight[i]+6\times rowWeight[i]-3}{4}$$
    最终的平滑权重计算公式为：
-   $$smoothWeight[i]=rowWeight[i]×min(max(pLast[i]+pSecondLast[i],0.01),100)$$
+   $$smoothWeight[i]=rowWeight[i]\times min(max(pLast[i]+pSecondLast[i],0.01),100)$$
 
 ## 波次僵尸确定算法
 
 1. 每个波次僵尸出现的级别之和有上限，记`currentWave`(从`0`开始)
-   为即将更新的僵尸波次，那么原始级别上限$originalUpperLimit=currentWave/3+1$
-   .对于普通波次，级别上限$levelUpperLimit=originalUpperLimit$.特别的，旗帜波(逻辑波次为`10`的倍数，即$currentWave\%10==9$)
-   的级别上限$levelUpperLimit=originalUpperLimit×2.5$.
-2. 不同类型的僵尸级别和刷新出现的权重不同，权重影响这出现该种类型僵尸概率，部分僵尸的级别和权重如表：
+   为即将更新的僵尸波次，那么原始级别上限
+   $originalUpperLimit=currentWave/3+1$
+   .对于普通波次，级别上限
+   $levelUpperLimit=originalUpperLimit$
+   .特别的，旗帜波(逻辑波次为`10`的倍数，即
+   $currentWave \mod 10==9$
+   )的级别上限
+   $levelUpperLimit=originalUpperLimit\times 2.5$.
+3. 不同类型的僵尸级别和刷新出现的权重不同，权重影响这出现该种类型僵尸概率，部分僵尸的级别和权重如表：
 
 | 序号	 | 简称 | 级别 |  权重  | 备注                        |
 |:---:|:--:|:--:|:----:|:--------------------------|
