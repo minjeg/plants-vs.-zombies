@@ -542,11 +542,11 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
 
         // 根据僵尸数量切换bgm
         int numOfZombies = gameModel.getNumOfZombies();
-        if (currentBGMPlayer == COMMON_BGM_PLAYER && numOfZombies >= 6) {
+        if (currentBGMPlayer == COMMON_BGM_PLAYER && numOfZombies >= 10) {
             currentBGMPlayer = FAST_BGM_PLAYER;
             FAST_BGM_PLAYER.startFrom(COMMON_BGM_PLAYER.getCurrentFrame());
             COMMON_BGM_PLAYER.stop();
-        } else if (currentBGMPlayer == FAST_BGM_PLAYER && numOfZombies < 6) {
+        } else if (currentBGMPlayer == FAST_BGM_PLAYER && numOfZombies < 10) {
             currentBGMPlayer = COMMON_BGM_PLAYER;
             COMMON_BGM_PLAYER.startFrom(FAST_BGM_PLAYER.getCurrentFrame());
             FAST_BGM_PLAYER.stop();
